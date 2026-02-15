@@ -1,0 +1,66 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import TabelaAulas from '../components/TabelaAulas';
+import { teacherService } from '../services/teacherService';
+
+export default function TeacherChartClassesPage() {
+    const [aulas, setAulas] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        teacherService.getPendingLessons()
+            .then(data => setAulas(Array.isArray(data) ? data : []))
+            .catch(error => {
+                console.error('Erro ao carregar próximas aulas:', error);
+                setAulas([]);
+            })
+            .finally(() => setLoading(false));
+    }, []);
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.card}>
+                <Text style={styles.title}>Próximas aulas</Text>
+                <Text style={styles.subtitle}>
+                    Visualize e gerencie suas aulas agendadas.
+                </Text>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#3970B7" />
+                ) : (
+                    <TabelaAulas aulas={aulas} />
+                )}
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F9FAFB', // gray-50
+        padding: 16,
+    },
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 16,
+        elevation: 1, // shadow-sm
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 1,
+        flex: 1, // h-full
+    },
+    title: {
+        fontSize: 20, // text-xl
+        fontWeight: 'bold',
+        marginBottom: 8,
+        color: '#1F2937', // gray-800
+    },
+    subtitle: {
+        fontSize: 14, // text-sm
+        color: '#6B7280', // gray-500
+        marginBottom: 16,
+    },
+});
