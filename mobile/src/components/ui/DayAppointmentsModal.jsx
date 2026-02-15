@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Modal as RNModal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { AppointmentCard } from "../appointment-manager/AppointmentCard";
-import { AppointmentModal } from "../appointment-manager/AppointmentModal";
+import { AppointmentCard } from "../student/appointment-manager/AppointmentCard";
+import { AppointmentModal } from "../common/AppointmentModal";
 
 export function DayAppointmentsModal({
     isOpen,

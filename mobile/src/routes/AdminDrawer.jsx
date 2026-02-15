@@ -2,13 +2,13 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { Home, Users, Calendar, Settings, DollarSign, FileText, UserPlus } from 'lucide-react-native';
 
-import VisaoGeralPage from '../pages/dashboard-admin/VisaoGeralPage';
-import AgendamentosPage from '../pages/dashboard-admin/AgendamentosPage';
-import ProfessoresPage from '../pages/dashboard-admin/ProfessoresPage';
-import GerenciamentoProfessoresPage from '../pages/dashboard-admin/GerenciamentoProfessoresPage';
-import PagamentosPage from '../pages/dashboard-admin/PagamentosPage';
-import RelatoriosPage from '../pages/dashboard-admin/RelatoriosPage';
-import ConfiguracoesPage from '../pages/dashboard-admin/ConfiguracoesPage';
+import VisaoGeralPage from '../pages/admin/VisaoGeralPage';
+import AgendamentosPage from '../pages/admin/AgendamentosPage';
+import ProfessoresPage from '../pages/admin/ProfessoresPage';
+import GerenciamentoProfessoresPage from '../pages/admin/GerenciamentoProfessoresPage';
+import PagamentosPage from '../pages/admin/PagamentosPage';
+import RelatoriosPage from '../pages/admin/RelatoriosPage';
+import ConfiguracoesPage from '../pages/admin/ConfiguracoesPage';
 
 const Drawer = createDrawerNavigator();
 

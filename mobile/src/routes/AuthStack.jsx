@@ -1,9 +1,9 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
-import EmailVerificationPage from '../pages/EmailVerificationPage';
-import HomePage from '../pages/HomePage';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+import EmailVerificationPage from '../pages/auth/EmailVerificationPage';
+import HomePage from '../pages/auth/HomePage';
 
 const Stack = createStackNavigator();
 

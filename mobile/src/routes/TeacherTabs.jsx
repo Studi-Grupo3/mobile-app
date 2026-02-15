@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { GenericScreen } from '../components/GenericScreen';
-import TeacherInitialPage from '../pages/TeacherInitialPage';
-import TeacherClassesPage from '../pages/TeacherClassesPage';
-import TeacherRequests from '../pages/TeacherRequests';
-import TeacherGraph from '../pages/TeacherGraph';
+import { GenericScreen } from '../components/common/GenericScreen';
+import TeacherInitialPage from '../pages/teacher/TeacherInitialPage';
+import TeacherClassesPage from '../pages/teacher/TeacherClassesPage';
+import TeacherRequests from '../pages/teacher/TeacherRequests';
+import TeacherGraph from '../pages/teacher/TeacherGraph';
 import { Home, BookOpen, Inbox, BarChart2, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();

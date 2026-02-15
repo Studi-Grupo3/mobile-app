@@ -7,15 +7,15 @@ import { AuthStack } from './AuthStack';
 import { StudentTabs } from './StudentTabs';
 import { TeacherTabs } from './TeacherTabs';
 import { AdminDrawer } from './AdminDrawer';
-import { GenericScreen } from '../components/GenericScreen';
-import AppointmentCreatePage from '../pages/AppointmentCreatePage';
-import CompleteStudentRegistrationPage from '../pages/CompleteStudentRegistrationPage';
-import CompleteTeacherRegistrationPage from '../pages/CompleteTeacherRegistrationPage';
-import ConfirmedPaymentPage from '../pages/ConfirmedPaymentPage';
-import CheckoutPage from '../pages/CheckoutPage';
-import NotFoundPage from '../pages/NotFoundPage';
-import LoadingPage from '../pages/LoadingPage';
-import UnauthorizedPage from '../pages/UnauthorizedPage';
+import { GenericScreen } from '../components/common/GenericScreen';
+import AppointmentCreatePage from '../pages/student/AppointmentCreatePage';
+import CompleteStudentRegistrationPage from '../pages/student/CompleteStudentRegistrationPage';
+import CompleteTeacherRegistrationPage from '../pages/teacher/CompleteTeacherRegistrationPage';
+import ConfirmedPaymentPage from '../pages/student/ConfirmedPaymentPage';
+import CheckoutPage from '../pages/student/CheckoutPage';
+import NotFoundPage from '../pages/common/NotFoundPage';
+import LoadingPage from '../pages/common/LoadingPage';
+import UnauthorizedPage from '../pages/common/UnauthorizedPage';
 
 const Stack = createStackNavigator();
 

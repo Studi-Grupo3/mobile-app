@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { api } from '../services/provider/api';
+import { api } from './provider/api';
 import { toISOStringDateTime, parseDurationToMinutes } from '../utils/date';
 
 async function getStudentIdFromSession() {

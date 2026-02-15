@@ -1,8 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { GenericScreen } from '../components/GenericScreen';
-import StudentInitialPage from '../pages/StudentInitialPage';
-import AppointmentManagerPage from '../pages/AppointmentManagerPage';
+import { GenericScreen } from '../components/common/GenericScreen';
+import StudentInitialPage from '../pages/student/StudentInitialPage';
+import AppointmentManagerPage from '../pages/student/AppointmentManagerPage';
 import { Home, Calendar, CreditCard, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();
