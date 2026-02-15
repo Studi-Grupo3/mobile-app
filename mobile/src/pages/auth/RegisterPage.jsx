@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import {
+    View, Text, TextInput, TouchableOpacity, StyleSheet,
+    KeyboardAvoidingView, Platform, Dimensions, Image, ScrollView
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { studentService } from '../../services/studentService';
 import Toast from 'react-native-toast-message';
+import BackgroundImage from '../../../assets/imagem-fundo.svg';
+
+const { width, height } = Dimensions.get('window');
 
 export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
@@ -16,10 +23,19 @@ export default function RegisterPage() {
     });
     const [loading, setLoading] = useState(false);
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
 
     const handleRegister = async () => {
+        if (!formData.name || !formData.email || !formData.password) {
+            Toast.show({ type: 'error', text1: 'Campos obrigatórios', text2: 'Preencha todos os campos.' });
+            return;
+        }
         if (formData.password !== formData.confirmPassword) {
-            Toast.show({ type: 'error', text1: 'Erro', text2: 'As senhas não coincidem' });
+            Toast.show({ type: 'error', text1: 'Erro', text2: 'As senhas não coincidem.' });
+            return;
+        }
+        if (formData.password.length < 6) {
+            Toast.show({ type: 'error', text1: 'Erro', text2: 'A senha deve ter pelo menos 6 caracteres.' });
             return;
         }
 
@@ -27,228 +43,279 @@ export default function RegisterPage() {
         try {
             const { name, email, password } = formData;
             const response = await studentService.create({ name, email, password });
-
             Toast.show({
                 type: 'success',
                 text1: 'Conta criada!',
                 text2: `Bem-vindo, ${response.username || response.name || 'usuário'}!`,
             });
-
-            setTimeout(() => {
-                navigation.navigate('Login');
-            }, 2000);
+            setTimeout(() => navigation.navigate('Login'), 2000);
         } catch (err) {
             console.error(err);
-            Toast.show({
-                type: 'error',
-                text1: 'Erro ao cadastrar',
-                text2: 'Tente novamente.',
-            });
+            Toast.show({ type: 'error', text1: 'Erro ao cadastrar', text2: 'Tente novamente.' });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={styles.container}>
-                <View style={[StyleSheet.absoluteFill, styles.background]} />
+        <View style={styles.root}>
+            {/* SVG Background */}
+            <View style={StyleSheet.absoluteFill}>
+                <BackgroundImage width={width} height={height} preserveAspectRatio="xMidYMid slice" />
+            </View>
+            <View style={[StyleSheet.absoluteFill, styles.overlay]} />
 
-                <View style={styles.card}>
-                    <Text style={styles.title}>Crie uma conta</Text>
+            {/* Back button */}
+            <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={[styles.backButton, { top: insets.top + 12 }]}
+                activeOpacity={0.7}
+            >
+                <ArrowLeft size={22} color="#FFF" />
+            </TouchableOpacity>
 
-                    <View style={styles.form}>
+            <KeyboardAvoidingView
+                style={styles.flex}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView
+                    contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 20 }]}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Logo */}
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../../assets/logoBranco.png')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                    </View>
+
+                    {/* Card */}
+                    <View style={styles.card}>
+                        <Text style={styles.title}>Criar Conta</Text>
+                        <Text style={styles.subtitle}>Preencha seus dados para começar</Text>
+
+                        {/* Name */}
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Nome Completo</Text>
+                            <Text style={styles.fieldLabel}>Nome Completo</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Digite seu nome completo"
-                                placeholderTextColor="#64748B"
+                                placeholderTextColor="#94A3B8"
                                 value={formData.name}
-                                onChangeText={t => setFormData({ ...formData, name: t })}
+                                onChangeText={t => setFormData(p => ({ ...p, name: t }))}
                             />
                         </View>
 
+                        {/* Email */}
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>E-mail</Text>
+                            <Text style={styles.fieldLabel}>E-mail</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="seu@email.com"
-                                placeholderTextColor="#64748B"
+                                placeholderTextColor="#94A3B8"
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                                 value={formData.email}
-                                onChangeText={t => setFormData({ ...formData, email: t })}
+                                onChangeText={t => setFormData(p => ({ ...p, email: t }))}
                             />
                         </View>
 
+                        {/* Password */}
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Senha</Text>
-                            <View style={styles.passwordContainer}>
+                            <Text style={styles.fieldLabel}>Senha</Text>
+                            <View style={styles.passwordInputContainer}>
                                 <TextInput
-                                    style={[styles.input, styles.passwordInput]}
+                                    style={[styles.input, { paddingRight: 44 }]}
                                     placeholder="Crie uma senha"
-                                    placeholderTextColor="#64748B"
+                                    placeholderTextColor="#94A3B8"
                                     secureTextEntry={!showPassword}
                                     value={formData.password}
-                                    onChangeText={t => setFormData({ ...formData, password: t })}
+                                    onChangeText={t => setFormData(p => ({ ...p, password: t }))}
                                     maxLength={20}
                                 />
                                 <TouchableOpacity
                                     onPress={() => setShowPassword(!showPassword)}
                                     style={styles.eyeIcon}
                                 >
-                                    {showPassword ? <EyeOff size={20} color="#6B7280" /> : <Eye size={20} color="#6B7280" />}
+                                    {showPassword ? <EyeOff size={20} color="#94A3B8" /> : <Eye size={20} color="#94A3B8" />}
                                 </TouchableOpacity>
                             </View>
-                            <Text style={styles.helperText}>A senha deve ter pelo menos 6 caracteres.</Text>
+                            <Text style={styles.helperText}>Mínimo de 6 caracteres</Text>
                         </View>
 
+                        {/* Confirm Password */}
                         <View style={styles.fieldContainer}>
-                            <Text style={styles.label}>Confirmar Senha</Text>
-                            <View style={styles.passwordContainer}>
+                            <Text style={styles.fieldLabel}>Confirmar Senha</Text>
+                            <View style={styles.passwordInputContainer}>
                                 <TextInput
-                                    style={[styles.input, styles.passwordInput]}
+                                    style={[styles.input, { paddingRight: 44 }]}
                                     placeholder="Confirme sua senha"
-                                    placeholderTextColor="#64748B"
+                                    placeholderTextColor="#94A3B8"
                                     secureTextEntry={!showConfirmPassword}
                                     value={formData.confirmPassword}
-                                    onChangeText={t => setFormData({ ...formData, confirmPassword: t })}
+                                    onChangeText={t => setFormData(p => ({ ...p, confirmPassword: t }))}
                                     maxLength={20}
                                 />
                                 <TouchableOpacity
                                     onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                                     style={styles.eyeIcon}
                                 >
-                                    {showConfirmPassword ? <EyeOff size={20} color="#6B7280" /> : <Eye size={20} color="#6B7280" />}
+                                    {showConfirmPassword ? <EyeOff size={20} color="#94A3B8" /> : <Eye size={20} color="#94A3B8" />}
                                 </TouchableOpacity>
                             </View>
                         </View>
 
+                        {/* Register Button */}
                         <TouchableOpacity
                             onPress={handleRegister}
                             disabled={loading}
                             style={[styles.button, loading && styles.buttonDisabled]}
+                            activeOpacity={0.8}
                         >
                             <Text style={styles.buttonText}>
                                 {loading ? 'Cadastrando...' : 'Cadastrar'}
                             </Text>
                         </TouchableOpacity>
 
+                        {/* Login Link */}
                         <View style={styles.footer}>
                             <Text style={styles.footerText}>Já tem uma conta? </Text>
                             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                <Text style={styles.footerLink}>Clique aqui</Text>
+                                <Text style={styles.footerLink}>Entrar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
-            </View>
-        </ScrollView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    root: {
+        flex: 1,
+        backgroundColor: '#3970B7',
+    },
+    flex: {
+        flex: 1,
+    },
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    },
+    backButton: {
+        position: 'absolute',
+        left: 16,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
     scrollContent: {
         flexGrow: 1,
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-        alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
+        alignItems: 'center',
+        paddingHorizontal: 24,
     },
-    background: {
-        backgroundColor: '#F3F4F6', // gray-100
-        zIndex: -10,
+    logoContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    logo: {
+        width: 110,
+        height: 110,
     },
     card: {
         width: '100%',
-        maxWidth: 384, // max-w-sm
-        backgroundColor: '#3970B7', // Primary blue
-        padding: 24,
+        maxWidth: 400,
+        backgroundColor: 'rgba(57, 112, 183, 0.92)',
         borderRadius: 24,
-        borderWidth: 4,
-        borderColor: '#FECB0A', // Secondary yellow
-        elevation: 10,
+        padding: 28,
+        borderWidth: 2,
+        borderColor: 'rgba(254, 203, 10, 0.5)',
+        elevation: 12,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.25,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
     },
     title: {
-        fontSize: 24,
+        fontSize: 26,
         fontWeight: 'bold',
         color: '#FFFFFF',
         textAlign: 'center',
-        marginBottom: 24,
     },
-    form: {
-        gap: 16,
+    subtitle: {
+        fontSize: 13,
+        color: 'rgba(255,255,255,0.7)',
+        textAlign: 'center',
+        marginBottom: 20,
+        marginTop: 4,
     },
     fieldContainer: {
-        marginBottom: 4,
+        marginBottom: 14,
     },
-    label: {
+    fieldLabel: {
         color: '#FFFFFF',
-        fontSize: 12,
-        fontWeight: 'bold',
-        marginBottom: 4,
+        fontSize: 13,
+        fontWeight: '600',
+        marginBottom: 6,
     },
     input: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 6,
-        height: 40,
-        paddingHorizontal: 12,
-        fontSize: 14,
-        color: '#000000',
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderRadius: 12,
+        height: 48,
+        paddingHorizontal: 16,
+        fontSize: 15,
+        color: '#1E293B',
     },
-    passwordContainer: {
+    passwordInputContainer: {
         position: 'relative',
         justifyContent: 'center',
     },
-    passwordInput: {
-        paddingRight: 40,
-    },
     eyeIcon: {
         position: 'absolute',
-        right: 12,
+        right: 14,
     },
     helperText: {
-        color: '#FFFFFF',
-        fontSize: 10,
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 11,
         marginTop: 4,
     },
     button: {
-        height: 40,
-        borderRadius: 8,
+        height: 50,
+        borderRadius: 14,
         backgroundColor: '#FECB0A',
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 8,
     },
     buttonDisabled: {
-        opacity: 0.7,
+        opacity: 0.6,
     },
     buttonText: {
-        color: '#000000',
-        fontWeight: '600',
+        color: '#1E293B',
+        fontSize: 16,
+        fontWeight: '700',
     },
     footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: 8,
+        marginTop: 16,
     },
     footerText: {
-        color: '#FFFFFF',
+        color: 'rgba(255,255,255,0.8)',
         fontSize: 14,
-        fontWeight: 'bold',
     },
     footerLink: {
         color: '#FECB0A',
         fontSize: 14,
-        fontWeight: 'bold',
+        fontWeight: '700',
         textDecorationLine: 'underline',
     },
 });

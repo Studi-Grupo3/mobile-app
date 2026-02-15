@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { teacherService } from "../../services/teacherService";
+import { mockTeacherService } from "../../mocks/mockServices";
 import { useNavigation } from "@react-navigation/native";
 
 const PlaceholderBtn = ({ text }) => (
@@ -31,7 +32,7 @@ export default function ProfessorsSectionHome() {
         let alive = true;
         (async () => {
             try {
-                const resp = await teacherService.listPublic(page, pageSize);
+                const resp = await mockTeacherService.listPublic(page, pageSize);
                 if (!alive) return;
                 const data = Array.isArray(resp) ? resp : resp.content || [];
                 setProfessors(data);

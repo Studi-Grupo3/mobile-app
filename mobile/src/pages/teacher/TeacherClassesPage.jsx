@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { teacherService } from '../../services/teacherService';
+import { mockTeacherService } from '../../mocks/mockServices';
 import { translateSubject } from '../../utils/tradutionUtils';
 import { TeacherAppointmentCard } from '../../components/teacher/TeacherAppointmentCard';
 import { AppointmentModal } from '../../components/common/AppointmentModal';
@@ -18,7 +19,7 @@ export default function TeacherClassesPage() {
 
     const fetchLessons = () => {
         setLoadingLessons(true);
-        teacherService.getProximasAulas()
+        mockTeacherService.getProximasAulas()
             .then(data => {
                 const safeData = Array.isArray(data) ? data : [];
                 setLessons(safeData);
@@ -32,7 +33,7 @@ export default function TeacherClassesPage() {
     };
 
     useEffect(() => {
-        teacherService.getStats()
+        mockTeacherService.getStats()
             .then(setStats)
             .catch(() => setStats(null))
             .finally(() => setLoadingStats(false));

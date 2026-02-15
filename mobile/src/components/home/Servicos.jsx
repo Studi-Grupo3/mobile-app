@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { Lightbulb, CheckCircle, Target } from "lucide-react-native";
 
 const Servicos = () => {
     const navigation = useNavigation();
@@ -40,9 +41,17 @@ const Servicos = () => {
                 </TouchableOpacity>
             </View>
 
-            {/* Image Placeholder */}
-            <View style={styles.imagePlaceholder}>
-                <Text style={styles.imagePlaceholderText}>Imagem Dicas Placeholder</Text>
+            {/* Illustration with icons */}
+            <View style={styles.illustrationBox}>
+                <View style={styles.illustrationMain}>
+                    <Lightbulb size={40} color="#FECB0A" />
+                </View>
+                <View style={[styles.illustrationSmall, { top: 20, left: 30 }]}>
+                    <CheckCircle size={18} color="#10B981" />
+                </View>
+                <View style={[styles.illustrationSmall, { bottom: 25, right: 35 }]}>
+                    <Target size={18} color="#3970B7" />
+                </View>
             </View>
         </View>
     );
@@ -113,14 +122,45 @@ const styles = StyleSheet.create({
     },
     imagePlaceholder: {
         width: '100%',
-        height: 192, // h-48
-        backgroundColor: '#E5E7EB', // gray-200
+        height: 192,
+        backgroundColor: '#E5E7EB',
         borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
     imagePlaceholderText: {
-        color: '#6B7280', // gray-500
+        color: '#6B7280',
+    },
+    illustrationBox: {
+        width: '100%',
+        height: 180,
+        backgroundColor: '#FFF7ED',
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+    },
+    illustrationMain: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#FEF3C7',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 4,
+        shadowColor: '#F59E0B',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+    },
+    illustrationSmall: {
+        position: 'absolute',
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 

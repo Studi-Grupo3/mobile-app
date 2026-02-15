@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { StatCard } from '../../components/admin/StatCard';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
-import { paymentDashService } from '../../services/dashboard/paymentDashService';
+import { mockPaymentDashService as paymentDashService } from '../../mocks/mockServices';
 import { CreditCard, Wallet } from 'lucide-react-native';
 
 export default function PagamentosPage() {

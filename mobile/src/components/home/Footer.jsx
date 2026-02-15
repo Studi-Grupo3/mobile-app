@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
-import { Phone, Mail } from "lucide-react-native";
+import { Phone, Mail, GraduationCap } from "lucide-react-native";
 import { useNavigation } from '@react-navigation/native';
 
 const LogoPlaceholder = () => (
     <View style={styles.logoPlaceholder}>
+        <GraduationCap size={28} color="#FECB0A" />
         <Text style={styles.logoText}>STUDI</Text>
     </View>
 );
@@ -104,17 +105,23 @@ const styles = StyleSheet.create({
         alignItems: 'center', // Mobile center alignment
     },
     logoPlaceholder: {
-        height: 64,
-        width: 128,
-        backgroundColor: '#1E40AF', // blue-800
+        height: 56,
+        paddingHorizontal: 20,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 4,
+        borderRadius: 12,
+        gap: 8,
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(254,203,10,0.3)',
     },
     logoText: {
-        color: 'white',
+        color: '#FECB0A',
         fontWeight: 'bold',
+        fontSize: 20,
+        letterSpacing: 2,
     },
     heading: {
         fontSize: 18,

@@ -1,13 +1,12 @@
 import React, { useContext } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { AuthContext } from '../context/authContext';
 import { AuthStack } from './AuthStack';
 import { StudentTabs } from './StudentTabs';
 import { TeacherTabs } from './TeacherTabs';
 import { AdminDrawer } from './AdminDrawer';
-import { GenericScreen } from '../components/common/GenericScreen';
 import AppointmentCreatePage from '../pages/student/AppointmentCreatePage';
 import CompleteStudentRegistrationPage from '../pages/student/CompleteStudentRegistrationPage';
 import CompleteTeacherRegistrationPage from '../pages/teacher/CompleteTeacherRegistrationPage';
@@ -24,7 +23,7 @@ export const AppRouter = () => {
 
     if (loading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC' }}>
                 <ActivityIndicator size="large" color="#3970B7" />
             </View>
         );
@@ -32,7 +31,16 @@ export const AppRouter = () => {
 
     return (
         <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    cardStyleInterpolator: CardStyleInterpolators.forFadeFromCenter,
+                    transitionSpec: {
+                        open: { animation: 'timing', config: { duration: 350 } },
+                        close: { animation: 'timing', config: { duration: 250 } },
+                    },
+                }}
+            >
                 {!user ? (
                     <Stack.Screen name="Auth" component={AuthStack} />
                 ) : user.role === 'ADMIN' ? (

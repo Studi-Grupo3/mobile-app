@@ -3,7 +3,7 @@ import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-nat
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
-import { overviewDashService } from '../../services/dashboard/overviewDashService';
+import { mockOverviewDashService } from '../../mocks/mockServices';
 import { DollarSign, BarChart2, CheckCircle } from 'lucide-react-native';
 
 export default function VisaoGeralPage() {
@@ -21,10 +21,10 @@ export default function VisaoGeralPage() {
         async function fetchData() {
             try {
                 const [statsData, revenueChart, lessonsChart, paymentsData] = await Promise.all([
-                    overviewDashService.getStats(),
-                    overviewDashService.getMonthlyRevenueChart(),
-                    overviewDashService.getLessonsPerDayChart(),
-                    overviewDashService.getRecentPaymentsTable()
+                    mockOverviewDashService.getStats(),
+                    mockOverviewDashService.getMonthlyRevenueChart(),
+                    mockOverviewDashService.getLessonsPerDayChart(),
+                    mockOverviewDashService.getRecentPaymentsTable()
                 ]);
                 setStats(statsData);
                 setCharts([revenueChart, lessonsChart]);

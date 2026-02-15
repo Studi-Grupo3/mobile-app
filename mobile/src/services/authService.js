@@ -1,20 +1,37 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from './provider/api';
+import { tryMockLogin } from '../mocks/mockCredentials';
 
 export const authService = {
     login: async (credentials) => {
-        const response = await api
-            .post('/auths/login', credentials)
-            .then(res => res.data);
+        try {
+            // Try real backend first
+            const response = await api
+                .post('/auths/login', credentials)
+                .then(res => res.data);
 
-        if (response.token) {
-            await AsyncStorage.setItem('authToken', response.token);
-            await AsyncStorage.setItem('userId', String(response.id));
-            await AsyncStorage.setItem('userRole', response.role);
-            await AsyncStorage.setItem('userEmail', response.email);
+            if (response.token) {
+                await AsyncStorage.setItem('authToken', response.token);
+                await AsyncStorage.setItem('userId', String(response.id));
+                await AsyncStorage.setItem('userRole', response.role);
+                await AsyncStorage.setItem('userEmail', response.email);
+            }
+
+            return response;
+        } catch (backendError) {
+            // If backend fails, try mock credentials as fallback
+            console.log('Backend unavailable, trying mock login...');
+            const mockResponse = tryMockLogin(credentials.email, credentials.password);
+            if (mockResponse) {
+                await AsyncStorage.setItem('authToken', mockResponse.token);
+                await AsyncStorage.setItem('userId', String(mockResponse.id));
+                await AsyncStorage.setItem('userRole', mockResponse.role);
+                await AsyncStorage.setItem('userEmail', mockResponse.email);
+                return mockResponse;
+            }
+            // If mock also doesn't match, throw original error
+            throw backendError;
         }
-
-        return response;
     },
 
     logout: async () => {

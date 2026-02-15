@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { User, Calendar, Clock } from 'lucide-react-native';
 import { teacherService } from '../../services/teacherService';
+import { mockTeacherService } from '../../mocks/mockServices';
 
 const Tag = ({ children, colorStyles }) => (
     <View style={[styles.tag, colorStyles]}>
@@ -16,7 +17,7 @@ export default function TeacherRequests() {
 
     useEffect(() => {
         setLoading(true);
-        teacherService.getRequests?.()
+        mockTeacherService.getRequests()
             .then(data => setRequests(Array.isArray(data) ? data : []))
             .catch(() => setRequests([]))
             .finally(() => setLoading(false));

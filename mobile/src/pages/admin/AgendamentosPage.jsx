@@ -3,7 +3,7 @@ import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-nat
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
-import { appointmentDashService } from '../../services/dashboard/appointmentDashService';
+import { mockAppointmentDashService as appointmentDashService } from '../../mocks/mockServices';
 import { Calendar, Clock, Timer, Hourglass } from 'lucide-react-native';
 
 export default function AgendamentosPage() {

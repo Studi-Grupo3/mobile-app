@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Heart, Users, Award, BookOpen } from "lucide-react-native";
 import SaibaMaisButton from "./SaibaMaisButton";
 
 const Historia = () => {
@@ -11,8 +12,19 @@ const Historia = () => {
 
     return (
         <View style={[styles.container, visible ? styles.visible : styles.hidden]}>
-            <View style={styles.imagePlaceholder}>
-                <Text style={styles.placeholderText}>Imagem História Placeholder</Text>
+            <View style={styles.illustrationBox}>
+                <View style={styles.illustrationMain}>
+                    <Heart size={40} color="#3970B7" />
+                </View>
+                <View style={[styles.illustrationSmall, { top: 16, right: 30 }]}>
+                    <Users size={18} color="#FECB0A" />
+                </View>
+                <View style={[styles.illustrationSmall, { bottom: 20, left: 25 }]}>
+                    <Award size={18} color="#3970B7" />
+                </View>
+                <View style={[styles.illustrationSmall, { top: 30, left: 40 }]}>
+                    <BookOpen size={16} color="#FECB0A" />
+                </View>
             </View>
 
             <View style={styles.content}>
@@ -59,15 +71,48 @@ const styles = StyleSheet.create({
     },
     imagePlaceholder: {
         width: '100%',
-        backgroundColor: '#DBEAFE', // blue-100
-        height: 192, // h-48
+        backgroundColor: '#DBEAFE',
+        height: 192,
         marginBottom: 32,
-        borderRadius: 8,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
+        position: 'relative',
+    },
+    illustrationBox: {
+        width: '100%',
+        backgroundColor: '#EFF6FF',
+        height: 180,
+        marginBottom: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+    },
+    illustrationMain: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#DBEAFE',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 4,
+        shadowColor: '#3970B7',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+    },
+    illustrationSmall: {
+        position: 'absolute',
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     placeholderText: {
-        color: '#3B82F6', // blue-500
+        color: '#3B82F6',
         fontWeight: 'bold',
     },
     content: {

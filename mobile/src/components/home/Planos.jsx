@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { Baby, BookOpen, GraduationCap, Sparkles } from "lucide-react-native";
 
 const Planos = () => {
     const navigation = useNavigation();
@@ -13,14 +14,20 @@ const Planos = () => {
         {
             title: "Ensino Infantil",
             text: "A Studi oferece aulas particulares lúdicas e personalizadas...",
+            icon: Baby,
+            accent: '#F9A8D4',
         },
         {
             title: "Ensino Fundamental",
             text: "Neste modelo, as aulas fortalecem a compreensão...",
+            icon: BookOpen,
+            accent: '#93C5FD',
         },
         {
             title: "Ensino Médio",
             text: "No Ensino Médio, as aulas particulares preparam...",
+            icon: GraduationCap,
+            accent: '#FDE68A',
         },
     ];
 
@@ -36,7 +43,13 @@ const Planos = () => {
                 {cards.map((card, idx) => (
                     <View key={idx} style={styles.card}>
                         <View style={styles.cardContent}>
-                            <View style={styles.imagePlaceholder} />
+                            <View style={[styles.illustrationBox, { backgroundColor: card.accent + '20' }]}>
+                                <View style={[styles.iconCircle, { backgroundColor: card.accent + '40' }]}>
+                                    <card.icon size={48} color="#fff" />
+                                </View>
+                                <Sparkles size={16} color={card.accent} style={{ position: 'absolute', top: 16, right: 24 }} />
+                                <Sparkles size={12} color={card.accent} style={{ position: 'absolute', bottom: 20, left: 20 }} />
+                            </View>
                             <Text style={styles.cardTitle}>{card.title}</Text>
                             <Text style={styles.cardText}>{card.text}</Text>
 
@@ -101,12 +114,21 @@ const styles = StyleSheet.create({
         padding: 24, // p-6
         alignItems: 'center',
     },
-    imagePlaceholder: {
+    illustrationBox: {
         width: '100%',
-        height: 144, // h-36
-        backgroundColor: '#E5E7EB', // gray-200
-        borderRadius: 8,
+        height: 144,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: 16,
+        position: 'relative',
+    },
+    iconCircle: {
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     cardTitle: {
         color: 'white',

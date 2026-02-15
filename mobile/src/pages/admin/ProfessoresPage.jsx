@@ -3,7 +3,7 @@ import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-nat
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
-import { teacherDashService } from '../../services/dashboard/teacherDashService';
+import { mockTeacherDashService as teacherDashService } from '../../mocks/mockServices';
 import { Users, BookOpen, Calendar, DollarSign } from 'lucide-react-native';
 
 export default function ProfessoresPage() {

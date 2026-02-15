@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Menu, X } from "lucide-react-native";
+import { Menu, X, GraduationCap } from "lucide-react-native";
 
 const Logo = () => (
     <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>STUDI LOGO</Text>
+        <GraduationCap size={22} color="#3970B7" />
+        <Text style={styles.logoText}>STUDI</Text>
     </View>
 );
 
@@ -91,15 +92,19 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         height: 40,
-        width: 128, // w-32
-        backgroundColor: '#FACC15', // yellow-400
+        paddingHorizontal: 12,
+        backgroundColor: '#FECB0A',
+        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 4,
+        borderRadius: 8,
+        gap: 6,
     },
     logoText: {
-        color: '#1E40AF', // blue-800
+        color: '#3970B7',
         fontWeight: 'bold',
+        fontSize: 16,
+        letterSpacing: 1,
     },
     menuIcon: {
         padding: 4,

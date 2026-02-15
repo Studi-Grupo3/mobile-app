@@ -1,10 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { GenericScreen } from '../components/common/GenericScreen';
 import TeacherInitialPage from '../pages/teacher/TeacherInitialPage';
 import TeacherClassesPage from '../pages/teacher/TeacherClassesPage';
 import TeacherRequests from '../pages/teacher/TeacherRequests';
 import TeacherGraph from '../pages/teacher/TeacherGraph';
+import ProfilePage from '../pages/common/ProfilePage';
 import { Home, BookOpen, Inbox, BarChart2, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();
@@ -15,7 +15,19 @@ export function TeacherTabs() {
             screenOptions={{
                 headerShown: false,
                 tabBarActiveTintColor: '#3970B7',
-                tabBarInactiveTintColor: 'gray',
+                tabBarInactiveTintColor: '#94A3B8',
+                tabBarStyle: {
+                    backgroundColor: '#FFFFFF',
+                    borderTopWidth: 1,
+                    borderTopColor: '#E2E8F0',
+                    height: 60,
+                    paddingBottom: 8,
+                    paddingTop: 6,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 11,
+                    fontWeight: '600',
+                },
             }}
         >
             <Tab.Screen
@@ -50,10 +62,9 @@ export function TeacherTabs() {
                     tabBarLabel: 'Métricas'
                 }}
             />
-            {/* Profile / History could be added or nested in Profile */}
             <Tab.Screen
                 name="Profile"
-                component={GenericScreen}
+                component={ProfilePage}
                 options={{
                     tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
                     tabBarLabel: 'Perfil'

@@ -1,9 +1,10 @@
 import 'react-native-gesture-handler'; // Dynamic import for Reanimated/GestureHandler
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/context/authContext';
 import { AppRouter } from './src/routes/AppRouter';
+import SplashScreen from './src/components/common/SplashScreen';
 import Toast from 'react-native-toast-message';
 
 // Load fonts if needed
@@ -28,6 +29,7 @@ import {
 } from '@expo-google-fonts/quicksand';
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -44,7 +46,11 @@ export default function App() {
   });
 
   if (!fontsLoaded) {
-    return null; // Or a loading spinner
+    return null;
+  }
+
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
   }
 
   return (

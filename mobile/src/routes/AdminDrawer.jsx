@@ -1,6 +1,6 @@
 import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Home, Users, Calendar, Settings, DollarSign, FileText, UserPlus } from 'lucide-react-native';
+import { Home, Users, Calendar, Settings, DollarSign, FileText, UserPlus, User } from 'lucide-react-native';
 
 import VisaoGeralPage from '../pages/admin/VisaoGeralPage';
 import AgendamentosPage from '../pages/admin/AgendamentosPage';
@@ -9,6 +9,7 @@ import GerenciamentoProfessoresPage from '../pages/admin/GerenciamentoProfessore
 import PagamentosPage from '../pages/admin/PagamentosPage';
 import RelatoriosPage from '../pages/admin/RelatoriosPage';
 import ConfiguracoesPage from '../pages/admin/ConfiguracoesPage';
+import ProfilePage from '../pages/common/ProfilePage';
 
 const Drawer = createDrawerNavigator();
 
@@ -18,7 +19,15 @@ export function AdminDrawer() {
             screenOptions={{
                 headerTintColor: '#3970B7',
                 drawerActiveTintColor: '#3970B7',
-                drawerInactiveTintColor: '#666',
+                drawerActiveBackgroundColor: '#EFF6FF',
+                drawerInactiveTintColor: '#64748B',
+                drawerStyle: {
+                    backgroundColor: '#FFFFFF',
+                },
+                drawerLabelStyle: {
+                    fontWeight: '600',
+                    fontSize: 14,
+                },
             }}
         >
             <Drawer.Screen
@@ -82,6 +91,15 @@ export function AdminDrawer() {
                     drawerIcon: ({ color, size }) => <Settings color={color} size={size} />,
                     drawerLabel: 'Configurações',
                     title: 'Configurações'
+                }}
+            />
+            <Drawer.Screen
+                name="Perfil"
+                component={ProfilePage}
+                options={{
+                    drawerIcon: ({ color, size }) => <User color={color} size={size} />,
+                    drawerLabel: 'Meu Perfil',
+                    title: 'Perfil'
                 }}
             />
         </Drawer.Navigator>

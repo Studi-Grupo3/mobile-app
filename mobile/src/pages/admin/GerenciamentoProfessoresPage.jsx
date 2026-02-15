@@ -3,7 +3,7 @@ import { View, ScrollView, Text, ActivityIndicator, Alert, TouchableOpacity, Sty
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
-import { teacherManagerService } from '../../services/dashboard/teacherManagerService';
+import { mockTeacherManagerService as teacherManagerService } from '../../mocks/mockServices';
 import { translateSubject } from '../../utils/tradutionUtils';
 import { UserPlus, Edit2, Trash2 } from 'lucide-react-native';
 
