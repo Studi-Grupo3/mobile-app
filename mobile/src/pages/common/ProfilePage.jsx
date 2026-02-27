@@ -6,8 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
-    User, LogOut, ChevronRight, Bell, Shield,
-    CreditCard, FileText, HelpCircle, Settings, BookOpen, Edit3
+    User, LogOut, ChevronRight, Edit3
 } from 'lucide-react-native';
 import { AuthContext } from '../../context/authContext';
 
@@ -96,107 +95,21 @@ export default function ProfilePage() {
 
     const menuSections = [];
 
-    // Registration Section (student/teacher only)
-    if ((isStudent || isTeacher) && profileData && !profileData.registrationComplete) {
+    // Registration / Personal Data Section (student/teacher only)
+    if (isStudent || isTeacher) {
         menuSections.push({
-            title: 'Cadastro',
+            title: 'Meu Cadastro',
             items: [
                 {
                     icon: Edit3,
                     label: 'Completar Cadastro',
-                    subtitle: 'Finalize seu perfil para usar todos os recursos',
+                    subtitle: 'Gerencie seus dados pessoais e finalize seu perfil',
                     onPress: handleCompleteRegistration,
                     highlight: true,
                 },
             ],
         });
     }
-
-    // Account section
-    menuSections.push({
-        title: 'Conta',
-        items: [
-            {
-                icon: User,
-                label: 'Dados Pessoais',
-                subtitle: 'Nome, email, telefone',
-                onPress: () => handleCompleteRegistration(),
-            },
-            {
-                icon: Shield,
-                label: 'Segurança',
-                subtitle: 'Senha e privacidade',
-                onPress: () => {},
-            },
-            {
-                icon: Bell,
-                label: 'Notificações',
-                subtitle: 'Preferências de notificação',
-                onPress: () => {},
-            },
-        ],
-    });
-
-    // Student-specific
-    if (isStudent) {
-        menuSections.push({
-            title: 'Estudos',
-            items: [
-                {
-                    icon: BookOpen,
-                    label: 'Meus Materiais',
-                    subtitle: 'PDFs e recursos baixados',
-                    onPress: () => {},
-                },
-                {
-                    icon: CreditCard,
-                    label: 'Pagamentos',
-                    subtitle: 'Histórico e faturas',
-                    onPress: () => navigation.navigate('Payments'),
-                },
-            ],
-        });
-    }
-
-    // Teacher-specific
-    if (isTeacher) {
-        menuSections.push({
-            title: 'Profissional',
-            items: [
-                {
-                    icon: FileText,
-                    label: 'Materiais dos Alunos',
-                    subtitle: 'PDFs compartilhados',
-                    onPress: () => {},
-                },
-                {
-                    icon: CreditCard,
-                    label: 'Meus Ganhos',
-                    subtitle: 'Pagamentos recebidos',
-                    onPress: () => {},
-                },
-            ],
-        });
-    }
-
-    // Support section
-    menuSections.push({
-        title: 'Suporte',
-        items: [
-            {
-                icon: HelpCircle,
-                label: 'Ajuda e FAQ',
-                subtitle: 'Perguntas frequentes',
-                onPress: () => {},
-            },
-            {
-                icon: Settings,
-                label: 'Configurações',
-                subtitle: 'Preferências do app',
-                onPress: () => {},
-            },
-        ],
-    });
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -330,14 +243,12 @@ const styles = StyleSheet.create({
     header: {
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        backgroundColor: '#3970B7',
     },
     headerTitle: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#1E293B',
+        color: '#FFFFFF',
     },
     scrollView: {
         flex: 1,
@@ -357,7 +268,7 @@ const styles = StyleSheet.create({
     },
     avatarContainer: {
         position: 'relative',
-        marginBottom: 12,
+        marginBottom: 20,
     },
     avatar: {
         width: 80,
@@ -373,7 +284,7 @@ const styles = StyleSheet.create({
     },
     roleBadge: {
         position: 'absolute',
-        bottom: -4,
+        bottom: -8,
         alignSelf: 'center',
         paddingHorizontal: 12,
         paddingVertical: 3,
@@ -390,7 +301,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: '700',
         color: '#1E293B',
-        marginTop: 8,
+        marginTop: 14,
     },
     profileEmail: {
         fontSize: 14,

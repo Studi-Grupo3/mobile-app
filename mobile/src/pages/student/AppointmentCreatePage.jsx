@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft } from 'lucide-react-native';
 
 // Import Wizard Steps
-import { ClassDetailsForm } from '../../components/student/appointment-create/ClassDetailsForm';
-import { ClassModelSelection } from '../../components/student/appointment-create/ClassModelSelection';
-import { ProfessorCarouselChoose } from '../../components/student/appointment-create/ProfessorCarouselChoose';
-import { Scheduling } from '../../components/student/appointment-create/Scheduling';
-import { Payment } from '../../components/student/appointment-create/Payment';
+import ClassDetailsForm from '../../components/student/appointment-create/ClassDetailsForm';
+import ClassModelSelection from '../../components/student/appointment-create/ClassModelSelection';
+import ProfessorCarouselChoose from '../../components/student/appointment-create/ProfessorCarouselChoose';
+import Scheduling from '../../components/student/appointment-create/Scheduling';
+import Payment from '../../components/student/appointment-create/Payment';
 
 const steps = [
     { key: "detalhes", label: "Detalhes", title: "Detalhes da Aula", Component: ClassDetailsForm },
@@ -20,6 +21,7 @@ const steps = [
 
 export default function AppointmentCreatePage() {
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
         phase: "",
@@ -75,11 +77,11 @@ export default function AppointmentCreatePage() {
     }, [currentStep]);
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={goBack} style={styles.backButton}>
-                    <ChevronLeft size={24} color="#333" />
+                    <ChevronLeft size={24} color="#FFFFFF" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Agendar Aula</Text>
             </View>
@@ -113,36 +115,30 @@ export default function AppointmentCreatePage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB', // gray-50
+        backgroundColor: '#F1F5F9',
     },
     header: {
-        backgroundColor: '#FFFFFF',
-        padding: 16,
+        backgroundColor: '#3970B7',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
         flexDirection: 'row',
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB', // gray-200
-        elevation: 1, // shadow-sm
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
     },
     backButton: {
         marginRight: 16,
     },
     headerTitle: {
-        fontSize: 18, // text-lg
-        fontWeight: '600',
-        color: '#1F2937', // gray-800
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#FFFFFF',
     },
     stepsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 32, // px-8
-        paddingVertical: 16, // py-4
+        paddingHorizontal: 32,
+        paddingVertical: 14,
         backgroundColor: '#FFFFFF',
-        marginBottom: 8, // mb-2
+        marginBottom: 8,
     },
     stepItem: {
         alignItems: 'center',
@@ -154,10 +150,10 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     stepDotActive: {
-        backgroundColor: '#2563EB', // blue-600
+        backgroundColor: '#FECB0A',
     },
     stepDotInactive: {
-        backgroundColor: '#D1D5DB', // gray-300
+        backgroundColor: '#CBD5E1',
     },
     scrollContent: {
         padding: 16,

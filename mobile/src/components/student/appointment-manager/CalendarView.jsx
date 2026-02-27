@@ -4,6 +4,7 @@ import { Calendar } from "react-native-calendars";
 import { LocaleConfig } from 'react-native-calendars';
 import { appointmentService } from "../../../services/appointmentService";
 import { authService } from "../../../services/authService";
+import { mockStudentAppointments } from "../../../mocks/mockData";
 import { statusStyles } from "../../common/StatusBadge";
 import { AppointmentModal } from "../../common/AppointmentModal";
 import { translateSubject } from "../../../utils/tradutionUtils";
@@ -37,7 +38,16 @@ export const CalendarView = ({ filter, setActiveTab, navigation }) => {
             const data = await appointmentService.getByStudentId(studentId);
             setAppointments(processAppointments(data));
         } catch (e) {
-            console.error(e);
+            console.log('CalendarView: Using mock appointments data');
+            const mockData = mockStudentAppointments.map(a => ({
+                ...a,
+                dateTime: `${a.date}T${a.time}`,
+                professorName: a.teacherName,
+                professorTitle: 'Professor(a)',
+                location: a.location || (a.modality === 'ONLINE' ? 'Online' : 'Presencial'),
+                online: a.modality === 'ONLINE',
+            }));
+            setAppointments(processAppointments(mockData));
         } finally {
             setLoading(false);
         }
@@ -61,17 +71,23 @@ export const CalendarView = ({ filter, setActiveTab, navigation }) => {
 
     // Filter and Mark Dates
     useEffect(() => {
+        const f = typeof filter === 'object' ? filter : { status: filter, subject: 'ALL', modality: 'ALL' };
         const filtered = appointments.filter(app => {
-            switch (filter) {
-                case "UPCOMING": return ["SCHEDULED", "CANCELLED"].includes(app.status);
-                case "CONFIRMED": return app.status === "SCHEDULED";
-                case "PENDING": return app.status === "PENDING";
-                case "CANCELLED": return app.status === "CANCELLED";
-                case "COMPLETED": return app.status === "COMPLETED";
-                case "ONLINE": return app.online;
-                case "OFFLINE": return !app.online;
-                default: return true;
+            // Status filter
+            if (f.status && f.status !== 'ALL') {
+                if (f.status === 'CONFIRMED' && app.status !== 'SCHEDULED') return false;
+                if (f.status === 'CANCELLED' && app.status !== 'CANCELLED') return false;
+                if (f.status === 'COMPLETED' && app.status !== 'COMPLETED') return false;
+                if (f.status === 'PENDING' && app.status !== 'PENDING') return false;
             }
+            // Subject filter
+            if (f.subject && f.subject !== 'ALL' && app.subject !== f.subject) return false;
+            // Modality filter
+            if (f.modality && f.modality !== 'ALL') {
+                if (f.modality === 'ONLINE' && !app.online) return false;
+                if (f.modality === 'OFFLINE' && app.online) return false;
+            }
+            return true;
         });
 
         const marks = {};

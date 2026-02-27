@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
-    KeyboardAvoidingView, Platform, Dimensions, Image, ScrollView
+    KeyboardAvoidingView, Platform, Dimensions, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
@@ -83,15 +83,6 @@ export default function RegisterPage() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Logo */}
-                    <View style={styles.logoContainer}>
-                        <Image
-                            source={require('../../../assets/logoBranco.png')}
-                            style={styles.logo}
-                            resizeMode="contain"
-                        />
-                    </View>
-
                     {/* Card */}
                     <View style={styles.card}>
                         <Text style={styles.title}>Criar Conta</Text>
@@ -221,14 +212,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 24,
-    },
-    logoContainer: {
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    logo: {
-        width: 110,
-        height: 110,
     },
     card: {
         width: '100%',

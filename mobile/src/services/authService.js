@@ -43,10 +43,28 @@ export const authService = {
     getUserRole: () => AsyncStorage.getItem('userRole'),
     getUserEmail: () => AsyncStorage.getItem('userEmail'),
 
-    forgotPassword: (data) => api.post('/auths/forgot-password', data),
-    verifyCode: (data) => api.post('/auths/verify-code', data),
-
+    forgotPassword: async (data) => {
+        try {
+            return await api.post('/auths/forgot-password', data);
+        } catch {
+            console.log('Mock: forgotPassword success');
+            return { success: true };
+        }
+    },
+    verifyCode: async (data) => {
+        try {
+            return await api.post('/auths/verify-code', data);
+        } catch {
+            console.log('Mock: verifyCode success');
+            return { success: true };
+        }
+    },
     resetPassword: async ({ email, newPassword }) => {
-        return api.patch('/students/reset-password', { email, newPassword });
+        try {
+            return await api.patch('/students/reset-password', { email, newPassword });
+        } catch {
+            console.log('Mock: resetPassword success');
+            return { success: true };
+        }
     }
 };

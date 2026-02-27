@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { usePreferenceId } from '../../hooks/payments/usePreferenceId';
 import { CreditCard, ExternalLink } from 'lucide-react-native';
@@ -7,6 +8,7 @@ import { CreditCard, ExternalLink } from 'lucide-react-native';
 export default function CheckoutPage() {
     const route = useRoute();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
 
     const { amount = 100, payerEmail = 'cliente@teste.com' } = route.params || {};
 

@@ -46,10 +46,10 @@ export default function TeacherClassesPage() {
             ...l,
             professorName: l.studentName,
             professorTitle: "Aluno",
-            professorImageUrl: l.studentImageUrl,
-            subject: l.disciplina,
+            professorImageUrl: null,
+            subject: l.subject,
             dateTime: `${l.date}T${l.time}`,
-            duration: l.lessonDuration
+            duration: l.duration
         };
         setSelectedLesson(adapted);
         setOpenModal(true);
@@ -106,16 +106,16 @@ export default function TeacherClassesPage() {
                 {!loadingLessons && !errorLessons && lessons.map(l => (
                     <View key={l.id} style={styles.lessonItem}>
                         <TeacherAppointmentCard
-                            subject={translateSubject(l.disciplina)}
+                            subject={translateSubject(l.subject)}
                             studentName={l.studentName}
-                            studentPhone={l.studentPhone}
-                            studentImageUrl={l.studentImageUrl}
+                            studentPhone={null}
+                            studentImageUrl={null}
                             date={new Date(l.date + "T" + l.time).toLocaleDateString("pt-BR")}
                             time={l.time}
-                            duration={`${l.lessonDuration}min`}
-                            location={l.location}
+                            duration={`${l.duration}min`}
+                            location={l.modality === "ONLINE" ? "Online" : "Presencial"}
                             status={l.status}
-                            online={l.location === "Online"}
+                            online={l.modality === "ONLINE"}
                             onDetailsClick={() => handleDetails(l)}
                         />
                     </View>
@@ -123,7 +123,7 @@ export default function TeacherClassesPage() {
             </ScrollView>
 
             <AppointmentModal
-                visible={openModal}
+                isOpen={openModal}
                 onClose={() => setOpenModal(false)}
                 appointment={selectedLesson}
                 onUpdate={fetchLessons}

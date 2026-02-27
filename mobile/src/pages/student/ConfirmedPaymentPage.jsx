@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { CheckCircle } from 'lucide-react-native';
 import { translateSubject } from '../../utils/tradutionUtils';
@@ -14,6 +15,7 @@ const InfoRow = ({ label, value, striped }) => (
 export default function ConfirmedPaymentPage() {
     const navigation = useNavigation();
     const route = useRoute();
+    const insets = useSafeAreaInsets();
     const { appointmentId } = route.params || {};
     const [loading, setLoading] = useState(true);
     const [appointment, setAppointment] = useState(null);
@@ -38,7 +40,7 @@ export default function ConfirmedPaymentPage() {
     const timeFormatted = new Date(dateTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.header}>
                 <CheckCircle size={64} color="#16a34a" />
                 <Text style={styles.title}>Agendamento Concluído!</Text>

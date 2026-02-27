@@ -238,6 +238,18 @@ export const mockTeacherManagerService = {
         () => require('../services/dashboard/teacherManagerService').teacherManagerService.list(),
         { content: mockTeachersList, totalPages: 1 }
     ),
+    create: async (payload) => {
+        console.log('Mock: create teacher', payload);
+        return { id: Date.now(), ...payload };
+    },
+    update: async (id, payload) => {
+        console.log('Mock: update teacher', id, payload);
+        return { id, ...payload };
+    },
+    softDelete: async (id) => {
+        console.log('Mock: softDelete teacher', id);
+        return { success: true };
+    },
 };
 
 export const mockAdminSettingsService = {

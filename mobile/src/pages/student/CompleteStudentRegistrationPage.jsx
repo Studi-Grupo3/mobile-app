@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
-import { ContentStudentRegistration } from '../../components/student/registration/ContentStudentRegistration';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { ChevronLeft } from 'lucide-react-native';
+import ContentStudentRegistration from '../../components/student/registration/ContentStudentRegistration';
+import { studentService } from '../../services/studentService';
+import { authService } from '../../services/authService';
 import { User, Image as ImageIcon, Users } from 'lucide-react-native';
 
 export default function CompleteStudentRegistrationPage() {
+    const insets = useSafeAreaInsets();
+    const navigation = useNavigation();
     const [activeTab, setActiveTab] = useState('Dados do Aluno');
     const [percentComplete, setPercentComplete] = useState(0);
     const [formData, setFormData] = useState({
@@ -23,8 +30,37 @@ export default function CompleteStudentRegistrationPage() {
     });
     const [loading, setLoading] = useState(true);
 
+    // Fetch student data from API
     useEffect(() => {
-        setLoading(false);
+        const fetchStudentData = async () => {
+            try {
+                const studentId = await authService.getUserId();
+                if (studentId) {
+                    const data = await studentService.getById(studentId);
+                    setFormData(prev => ({
+                        ...prev,
+                        id: data.id || studentId,
+                        name: data.name || '',
+                        email: data.email || '',
+                        dateBirth: data.dateBirth || '',
+                        schoolGrade: data.schoolGrade || '',
+                        schoolName: data.schoolName || '',
+                        cellphoneNumber: data.cellphoneNumber || '',
+                        responsible: {
+                            responsibleName: data.responsible?.responsibleName || '',
+                            kinship: data.responsible?.kinship || '',
+                            responsibleCpf: data.responsible?.responsibleCpf || '',
+                            responsibleCellphoneNumber: data.responsible?.responsibleCellphoneNumber || '',
+                        },
+                    }));
+                }
+            } catch (err) {
+                console.log('Erro ao buscar dados do aluno, usando dados padr\u00e3o:', err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStudentData();
     }, []);
 
     const handleChange = (field, value) => {
@@ -39,7 +75,32 @@ export default function CompleteStudentRegistrationPage() {
     };
 
     const handleSave = async () => {
-        Alert.alert("Sucesso", "Perfil atualizado!");
+        try {
+            const studentId = formData.id || await authService.getUserId();
+            if (!studentId) {
+                Alert.alert('Erro', 'Usu\u00e1rio n\u00e3o encontrado.');
+                return;
+            }
+            const payload = {
+                name: formData.name,
+                email: formData.email,
+                dateBirth: formData.dateBirth,
+                schoolGrade: formData.schoolGrade,
+                schoolName: formData.schoolName,
+                cellphoneNumber: formData.cellphoneNumber,
+                responsible: {
+                    responsibleName: formData.responsible.responsibleName,
+                    kinship: formData.responsible.kinship,
+                    responsibleCpf: formData.responsible.responsibleCpf,
+                    responsibleCellphoneNumber: formData.responsible.responsibleCellphoneNumber,
+                },
+            };
+            await studentService.update(studentId, payload);
+            Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+        } catch (err) {
+            console.error('Erro ao salvar:', err);
+            Alert.alert('Erro', 'N\u00e3o foi poss\u00edvel salvar as altera\u00e7\u00f5es. Tente novamente.');
+        }
     };
 
     const tabs = [
@@ -51,8 +112,11 @@ export default function CompleteStudentRegistrationPage() {
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
+                    <ChevronLeft size={24} color="#FFFFFF" />
+                </TouchableOpacity>
                 <Text style={styles.headerTitle}>Cadastro do Aluno</Text>
             </View>
 
@@ -74,7 +138,7 @@ export default function CompleteStudentRegistrationPage() {
                                 activeTab === t.id && styles.activeTab
                             ]}
                         >
-                            <t.icon size={20} color={activeTab === t.id ? '#ca8a04' : '#666'} />
+                            <t.icon size={20} color={activeTab === t.id ? '#FECB0A' : '#64748B'} />
                             <Text style={[
                                 styles.tabLabel,
                                 activeTab === t.id ? styles.activeTabLabel : styles.inactiveTabLabel
@@ -102,18 +166,19 @@ export default function CompleteStudentRegistrationPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB', // gray-50
+        backgroundColor: '#F1F5F9',
     },
     header: {
-        backgroundColor: 'white',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB', // gray-200
+        backgroundColor: '#3970B7',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     headerTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
+        fontWeight: '700',
+        color: '#FFFFFF',
     },
     centered: {
         flex: 1,
@@ -153,30 +218,31 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         marginBottom: 24,
         backgroundColor: 'white',
-        padding: 8,
-        borderRadius: 8,
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        padding: 6,
+        borderRadius: 12,
+        elevation: 2,
+        shadowColor: '#3970B7',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
     },
     tabItem: {
         alignItems: 'center',
-        padding: 8,
-        borderRadius: 6,
+        padding: 10,
+        borderRadius: 10,
+        flex: 1,
     },
     activeTab: {
-        backgroundColor: '#FEF9C3', // yellow-100
+        backgroundColor: '#3970B7',
     },
     tabLabel: {
         fontSize: 12, // text-xs
         marginTop: 4,
     },
     activeTabLabel: {
-        color: '#A16207', // yellow-700
+        color: '#FFFFFF',
     },
     inactiveTabLabel: {
-        color: '#6B7280', // gray-500
+        color: '#64748B',
     },
 });

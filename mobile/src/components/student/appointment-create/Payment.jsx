@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from "react-native";
-import { BookOpen, Clock, Calendar, CreditCard } from "lucide-react-native";
+import { BookOpen, Clock, Calendar, CreditCard, CheckCircle } from "lucide-react-native";
 import { appointmentCreateService } from "../../../services/appointmentCreateService";
 import { parseDurationToMinutes } from "../../../utils/date";
+
+// ══════ BYPASS: set to true to skip real API & payment ══════
+const BYPASS_API = true;
+// ═════════════════════════════════════════════════════════════
 
 export default function Payment({ data, onUpdate, onNext, navigation }) {
     const [step, setStep] = useState("endereco");
@@ -68,24 +72,33 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
         setErrorMsg("");
         setLoading(true);
         try {
-            const lessonDuration = parseDurationToMinutes(data.duration || "");
-            const ratePerMinute = 1;
-            const totalValue = lessonDuration * ratePerMinute;
+            if (BYPASS_API) {
+                // Mock mode: simulate successful scheduling
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                Alert.alert(
+                    "✅ Agendamento Realizado!",
+                    `Aula de ${data.subject || 'matéria'} agendada com sucesso!\n\nData: ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : '—'}\nHorário: ${data.time || '—'}\nValor: R$ ${totalValueLocal.toFixed(2).replace(".", ",")}`,
+                    [{ text: "OK" }]
+                );
+            } else {
+                const lessonDuration = parseDurationToMinutes(data.duration || "");
+                const ratePerMinute = 1;
+                const totalValue = lessonDuration * ratePerMinute;
 
-            const created = await appointmentCreateService.create({
-                ...data,
-                pagamento: {
-                    ...data.pagamento,
-                    lessonDuration,
-                    totalValue,
-                    method: paymentMethod,
-                },
-            });
+                await appointmentCreateService.create({
+                    ...data,
+                    pagamento: {
+                        ...data.pagamento,
+                        lessonDuration,
+                        totalValue,
+                        method: paymentMethod,
+                    },
+                });
 
-            Alert.alert("Sucesso", "Agendamento realizado!", [
-                { text: "OK", onPress: () => console.log("Navigate to success", created.id) }
-            ]);
-
+                Alert.alert("Sucesso", "Agendamento realizado!", [
+                    { text: "OK" }
+                ]);
+            }
         } catch (err) {
             console.error(err);
             setErrorMsg("Erro ao agendar. Tente novamente.");

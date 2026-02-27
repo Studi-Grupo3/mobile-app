@@ -7,8 +7,6 @@ const { width, height } = Dimensions.get('window');
 export default function SplashScreen({ onFinish }) {
     const logoScale = useRef(new Animated.Value(0.3)).current;
     const logoOpacity = useRef(new Animated.Value(0)).current;
-    const titleOpacity = useRef(new Animated.Value(0)).current;
-    const titleTranslateY = useRef(new Animated.Value(30)).current;
     const subtitleOpacity = useRef(new Animated.Value(0)).current;
     const subtitleTranslateY = useRef(new Animated.Value(20)).current;
     const dotScale1 = useRef(new Animated.Value(0)).current;
@@ -69,21 +67,7 @@ export default function SplashScreen({ onFinish }) {
                     useNativeDriver: true,
                 }),
             ]),
-            // 2. Title slides in
-            Animated.parallel([
-                Animated.timing(titleOpacity, {
-                    toValue: 1,
-                    duration: 500,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(titleTranslateY, {
-                    toValue: 0,
-                    friction: 6,
-                    tension: 40,
-                    useNativeDriver: true,
-                }),
-            ]),
-            // 3. Subtitle slides in
+            // 2. Subtitle slides in
             Animated.parallel([
                 Animated.timing(subtitleOpacity, {
                     toValue: 1,
@@ -144,21 +128,11 @@ export default function SplashScreen({ onFinish }) {
                     transform: [{ scale: logoScale }],
                     opacity: logoOpacity,
                 }]}>
-                    <View style={styles.logoInner}>
-                        <Image
-                            source={require('../../../assets/logoBranco.png')}
-                            style={styles.logoImage}
-                            resizeMode="contain"
-                        />
-                    </View>
-                </Animated.View>
-
-                {/* Title */}
-                <Animated.View style={{
-                    opacity: titleOpacity,
-                    transform: [{ translateY: titleTranslateY }],
-                }}>
-                    <Text style={styles.title}>STUDI</Text>
+                    <Image
+                        source={require('../../../assets/logoBranco.png')}
+                        style={styles.logoImage}
+                        resizeMode="contain"
+                    />
                 </Animated.View>
 
                 {/* Subtitle */}
@@ -245,24 +219,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logoContainer: {
-        marginBottom: 24,
-    },
-    logoInner: {
-        width: 160,
-        height: 160,
-        justifyContent: 'center',
+        marginBottom: 32,
         alignItems: 'center',
     },
     logoImage: {
-        width: 150,
-        height: 150,
-    },
-    title: {
-        fontSize: 48,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-        letterSpacing: 8,
-        textAlign: 'center',
+        width: 220,
+        height: 220,
     },
     subtitle: {
         fontSize: 16,

@@ -2,9 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import StudentInitialPage from '../pages/student/StudentInitialPage';
 import AppointmentManagerPage from '../pages/student/AppointmentManagerPage';
-import StudentPaymentsPage from '../pages/student/StudentPaymentsPage';
 import ProfilePage from '../pages/common/ProfilePage';
-import { Home, Calendar, CreditCard, User } from 'lucide-react-native';
+import { Home, Calendar, CalendarPlus, User } from 'lucide-react-native';
+import { View, StyleSheet } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -13,15 +13,19 @@ export function StudentTabs() {
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#3970B7',
-                tabBarInactiveTintColor: '#94A3B8',
+                tabBarActiveTintColor: '#FECB0A',
+                tabBarInactiveTintColor: '#8BADD4',
                 tabBarStyle: {
-                    backgroundColor: '#FFFFFF',
-                    borderTopWidth: 1,
-                    borderTopColor: '#E2E8F0',
-                    height: 60,
+                    backgroundColor: '#3970B7',
+                    borderTopWidth: 0,
+                    height: 62,
                     paddingBottom: 8,
                     paddingTop: 6,
+                    elevation: 12,
+                    shadowColor: '#1E3A5F',
+                    shadowOffset: { width: 0, height: -4 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
                 },
                 tabBarLabelStyle: {
                     fontSize: 11,
@@ -46,11 +50,19 @@ export function StudentTabs() {
                 }}
             />
             <Tab.Screen
-                name="Payments"
-                component={StudentPaymentsPage}
+                name="AgendarTab"
+                component={View}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('AppointmentCreate');
+                    },
+                })}
                 options={{
-                    tabBarIcon: ({ color, size }) => <CreditCard color={color} size={size} />,
-                    tabBarLabel: 'Pagamentos'
+                    tabBarIcon: ({ color, size }) => (
+                        <CalendarPlus color={color} size={size} />
+                    ),
+                    tabBarLabel: 'Agendar',
                 }}
             />
             <Tab.Screen

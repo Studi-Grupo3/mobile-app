@@ -1,12 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { ChevronDown, Upload } from 'lucide-react-native';
-import AddMaterialModal from './AddMaterialModal';
-import { Picker } from '@react-native-picker/picker'; // Using Picker for Select replacement
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
+import { ChevronDown, Check } from 'lucide-react-native';
+
+const CustomSelect = ({ label, value, options, placeholder, onSelect }) => {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <View style={styles.field}>
+            <Text style={styles.label}>{label}</Text>
+            <TouchableOpacity
+                style={styles.selectButton}
+                onPress={() => setOpen(true)}
+                activeOpacity={0.7}
+            >
+                <Text style={[styles.selectText, !value && styles.placeholderText]}>
+                    {value || placeholder}
+                </Text>
+                <ChevronDown size={18} color="#64748B" />
+            </TouchableOpacity>
+
+            <Modal visible={open} transparent animationType="fade">
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setOpen(false)}
+                >
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>{label}</Text>
+                        <FlatList
+                            data={options}
+                            keyExtractor={(item) => item}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={[styles.optionItem, value === item && styles.optionItemActive]}
+                                    onPress={() => { onSelect(item); setOpen(false); }}
+                                >
+                                    <Text style={[styles.optionText, value === item && styles.optionTextActive]}>
+                                        {item}
+                                    </Text>
+                                    {value === item && <Check size={18} color="#3970B7" />}
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </View>
+    );
+};
 
 export default function ClassDetailsForm({ data, onUpdate, onNext }) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
     const phaseOptions = [
         'Ensino Fundamental I',
         'Ensino Fundamental II',
@@ -35,86 +78,33 @@ export default function ClassDetailsForm({ data, onUpdate, onNext }) {
         '2 horas'
     ];
 
-    const handleAddMaterial = newMaterial => {
-        const updated = [
-            ...(data.materials || []),
-            { id: Date.now(), name: newMaterial.name, file: newMaterial.file }
-        ];
-        onUpdate({ materials: updated });
-        setIsModalOpen(false);
-    };
-
-    const allFilled =
-        data.phase &&
-        data.subject &&
-        data.duration;
+    const allFilled = data.phase && data.subject && data.duration;
 
     return (
         <View style={styles.container}>
-            <View style={styles.field}>
-                <Text style={styles.label}>Escolha a fase escolar</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={data.phase}
-                        onValueChange={(itemValue) => onUpdate({ phase: itemValue })}
-                    >
-                        <Picker.Item label="Selecione a fase escolar" value="" />
-                        {phaseOptions.map(phase => (
-                            <Picker.Item key={phase} label={phase} value={phase} />
-                        ))}
-                    </Picker>
-                </View>
-            </View>
+            <CustomSelect
+                label="Escolha a fase escolar"
+                value={data.phase}
+                options={phaseOptions}
+                placeholder="Selecione a fase escolar"
+                onSelect={(v) => onUpdate({ phase: v })}
+            />
 
-            <View style={styles.field}>
-                <Text style={styles.label}>Escolha uma matéria</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={data.subject}
-                        onValueChange={(itemValue) => onUpdate({ subject: itemValue })}
-                    >
-                        <Picker.Item label="Selecione uma matéria" value="" />
-                        {subjectOptions.map(subject => (
-                            <Picker.Item key={subject} label={subject} value={subject} />
-                        ))}
-                    </Picker>
-                </View>
-            </View>
+            <CustomSelect
+                label="Escolha uma matéria"
+                value={data.subject}
+                options={subjectOptions}
+                placeholder="Selecione uma matéria"
+                onSelect={(v) => onUpdate({ subject: v })}
+            />
 
-            <View style={styles.field}>
-                <Text style={styles.label}>Selecione a duração da aula</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={data.duration}
-                        onValueChange={(itemValue) => onUpdate({ duration: itemValue })}
-                    >
-                        <Picker.Item label="Selecione a duração" value="" />
-                        {durationOptions.map(duration => (
-                            <Picker.Item key={duration} label={duration} value={duration} />
-                        ))}
-                    </Picker>
-                </View>
-            </View>
-
-            {/* 
-      <View style={styles.field}>
-        <Text style={styles.label}>Material de Aula</Text>
-         {data.materials && data.materials.length > 0 && (
-          <View style={styles.materialsList}>
-            {data.materials.map(mat => (
-              <Text key={mat.id} style={styles.materialItem}>{mat.name}</Text>
-            ))}
-          </View>
-        )}
-        <TouchableOpacity 
-            onPress={() => setIsModalOpen(true)}
-            style={styles.addButton}
-        >
-            <Upload size={16} color="#3970B7" style={{marginRight: 8}}/>
-            <Text style={{color: '#3970B7'}}>Adicionar Material</Text>
-        </TouchableOpacity>
-      </View>
-      */}
+            <CustomSelect
+                label="Selecione a duração da aula"
+                value={data.duration}
+                options={durationOptions}
+                placeholder="Selecione a duração"
+                onSelect={(v) => onUpdate({ duration: v })}
+            />
 
             <TouchableOpacity
                 onPress={onNext}
@@ -123,12 +113,6 @@ export default function ClassDetailsForm({ data, onUpdate, onNext }) {
             >
                 <Text style={styles.nextButtonText}>Continuar</Text>
             </TouchableOpacity>
-
-            {/* <AddMaterialModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAddMaterial={handleAddMaterial}
-      /> */}
         </View>
     );
 }
@@ -144,45 +128,82 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         color: '#374151',
-        fontWeight: '500',
+        fontWeight: '600',
     },
-    pickerContainer: {
-        borderWidth: 1,
-        borderColor: '#d1d5db',
-        borderRadius: 8,
-        backgroundColor: 'white',
-        // Android picker styling is limited, consider standard View wrapping
-    },
-    materialsList: {
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 10,
-    },
-    materialItem: {
-        fontSize: 14,
-        color: '#4b5563',
-        marginBottom: 2,
-    },
-    addButton: {
+    selectButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 10,
+        justifyContent: 'space-between',
         borderWidth: 1,
-        borderColor: '#e5e7eb',
-        borderRadius: 5,
+        borderColor: '#D1D5DB',
+        borderRadius: 12,
+        backgroundColor: 'white',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    selectText: {
+        fontSize: 15,
+        color: '#1E293B',
+        flex: 1,
+    },
+    placeholderText: {
+        color: '#94A3B8',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    modalContent: {
+        width: '100%',
+        maxHeight: 400,
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 16,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+    },
+    modalTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#3970B7',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    optionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 14,
+        paddingHorizontal: 12,
+        borderRadius: 10,
+        marginBottom: 2,
+    },
+    optionItemActive: {
+        backgroundColor: '#EFF6FF',
+    },
+    optionText: {
+        fontSize: 15,
+        color: '#374151',
+    },
+    optionTextActive: {
+        color: '#3970B7',
+        fontWeight: '600',
     },
     nextButton: {
         backgroundColor: '#3970B7',
         padding: 15,
-        borderRadius: 8,
+        borderRadius: 12,
         alignItems: 'center',
         marginTop: 10,
     },
     disabledButton: {
-        backgroundColor: '#d1d5db',
+        backgroundColor: '#CBD5E1',
     },
     nextButtonText: {
         color: 'white',

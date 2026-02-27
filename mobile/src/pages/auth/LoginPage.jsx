@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
-    KeyboardAvoidingView, Platform, Dimensions, Image, ScrollView
+    KeyboardAvoidingView, Platform, Dimensions, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Eye, EyeOff } from 'lucide-react-native';
@@ -78,15 +78,6 @@ export default function LoginPage() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Logo */}
-                    <View style={styles.logoContainer}>
-                        <Image
-                            source={require('../../../assets/logoBranco.png')}
-                            style={styles.logo}
-                            resizeMode="contain"
-                        />
-                    </View>
-
                     {/* Card */}
                     <View style={styles.card}>
                         <Text style={styles.title}>Entrar</Text>
@@ -111,7 +102,7 @@ export default function LoginPage() {
                             <View style={styles.passwordHeader}>
                                 <Text style={styles.fieldLabel}>Senha</Text>
                                 <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-                                    <Text style={styles.forgotPassword}>Esqueceu?</Text>
+                                    <Text style={styles.forgotPassword}>Esqueceu a Senha?</Text>
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.passwordInputContainer}>
@@ -190,14 +181,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 24,
-    },
-    logoContainer: {
-        alignItems: 'center',
-        marginBottom: 28,
-    },
-    logo: {
-        width: 140,
-        height: 140,
     },
     card: {
         width: '100%',

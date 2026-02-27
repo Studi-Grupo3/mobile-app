@@ -52,14 +52,14 @@ export default function TeacherInitialPage() {
             description: "Visualize e gerencie suas aulas agendadas.",
             buttonLink: "Ver aulas →",
             colorStyles: { bg: "#EFF6FF", textTitle: "#1E40AF", buttonText: "#2563EB", arrowColor: "#2563EB" }, // blue-50, blue-800, blue-600
-            route: "TeacherClasses",
+            route: "Classes",
         },
         {
             title: "Solicitações",
             description: "Visualize as últimas solicitações.",
             buttonLink: "Ver solicitações →",
             colorStyles: { bg: "#FEFCE8", textTitle: "#A16207", buttonText: "#A16207", arrowColor: "#A16207" }, // yellow-50, yellow-700
-            route: "TeacherRequests",
+            route: "Requests",
         },
     ];
 

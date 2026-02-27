@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowRight } from 'lucide-react-native';
 
@@ -27,6 +28,7 @@ const CardPanelItem = ({ title, description, buttonLink, colorStyles, route }) =
 };
 
 export default function StudentInitialPage() {
+    const insets = useSafeAreaInsets();
     const [isCadastroCompleto, setIsCadastroCompleto] = useState(false);
 
     useEffect(() => {
@@ -64,9 +66,10 @@ export default function StudentInitialPage() {
     ];
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { paddingTop: insets.top }]}>
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Painel do Aluno</Text>
+                <Text style={styles.headerSubtitle}>Gerencie suas aulas</Text>
             </View>
 
             <View style={styles.content}>
@@ -93,54 +96,62 @@ export default function StudentInitialPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB', // gray-50
+        backgroundColor: '#F1F5F9',
     },
     header: {
-        backgroundColor: 'white',
-        padding: 16,
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB', // gray-200
+        backgroundColor: '#3970B7',
+        paddingHorizontal: 20,
+        paddingVertical: 20,
+        paddingBottom: 24,
     },
     headerTitle: {
-        fontSize: 18, // text-lg
-        fontWeight: '600',
-        color: '#1F2937', // gray-800
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    headerSubtitle: {
+        fontSize: 13,
+        color: '#FECB0A',
+        marginTop: 2,
+        fontWeight: '500',
     },
     content: {
         padding: 16,
     },
     welcomeCard: {
         backgroundColor: 'white',
-        borderRadius: 8,
+        borderRadius: 16,
         padding: 20,
-        marginBottom: 24,
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        marginBottom: 20,
+        elevation: 3,
+        shadowColor: '#3970B7',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        borderLeftWidth: 4,
+        borderLeftColor: '#FECB0A',
     },
     welcomeTitle: {
-        fontSize: 20, // text-xl
-        fontWeight: 'bold',
-        color: 'black',
-        marginBottom: 8,
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1E293B',
+        marginBottom: 6,
     },
     welcomeText: {
-        fontSize: 14, // text-sm
-        color: '#4B5563', // gray-600
+        fontSize: 13,
+        color: '#64748B',
+        lineHeight: 19,
     },
     cardItem: {
         width: '100%',
-        borderRadius: 8,
-        elevation: 1,
+        borderRadius: 14,
+        elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
         padding: 20,
-        marginBottom: 16,
+        marginBottom: 14,
     },
     cardTitle: {
         fontSize: 20, // text-xl

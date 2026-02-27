@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet }
 import { User, Calendar, Clock } from 'lucide-react-native';
 import { teacherService } from '../../services/teacherService';
 import { mockTeacherService } from '../../mocks/mockServices';
+import { translateSubject } from '../../utils/tradutionUtils';
 
 const Tag = ({ children, colorStyles }) => (
     <View style={[styles.tag, colorStyles]}>
@@ -23,18 +24,38 @@ export default function TeacherRequests() {
             .finally(() => setLoading(false));
     }, []);
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'PENDING': return { backgroundColor: '#FEF9C3' };
+            case 'SCHEDULED': return { backgroundColor: '#DBEAFE' };
+            case 'COMPLETED': return { backgroundColor: '#DCFCE7' };
+            case 'CANCELLED': return { backgroundColor: '#FEE2E2' };
+            default: return { backgroundColor: '#F3F4F6' };
+        }
+    };
+
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'PENDING': return 'Pendente';
+            case 'SCHEDULED': return 'Agendado';
+            case 'COMPLETED': return 'Concluído';
+            case 'CANCELLED': return 'Cancelado';
+            default: return status;
+        }
+    };
+
     const renderItem = ({ item: req }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <View>
-                    <Text style={styles.subject}>{req.disciplina}</Text>
+                    <Text style={styles.subject}>{translateSubject(req.subject)}</Text>
                     <View style={styles.studentRow}>
                         <User size={12} color="gray" />
-                        <Text style={styles.studentName}>{req.professor}</Text>
+                        <Text style={styles.studentName}>{req.studentName}</Text>
                     </View>
                 </View>
                 <View style={styles.tagsContainer}>
-                    <Tag colorStyles={styles.tagYellow}>{req.status}</Tag>
+                    <Tag colorStyles={getStatusColor(req.status)}>{getStatusLabel(req.status)}</Tag>
                 </View>
             </View>
 
@@ -42,34 +63,22 @@ export default function TeacherRequests() {
                 <View style={styles.infoColumn}>
                     <View style={styles.infoRow}>
                         <Calendar size={12} color="gray" />
-                        <Text style={styles.infoText}>{req.dataOriginal}</Text>
+                        <Text style={styles.infoText}>{req.date}</Text>
                     </View>
                     <View style={styles.infoRow}>
                         <Clock size={12} color="gray" />
-                        <Text style={styles.infoText}>{req.horaOriginal}</Text>
+                        <Text style={styles.infoText}>{req.time} • {req.duration}min</Text>
                     </View>
-                    <Text style={styles.motifText}>
-                        <Text style={styles.bold}>Motivo:</Text> {req.motivo}
-                    </Text>
+                    {req.message ? (
+                        <Text style={styles.motifText}>
+                            <Text style={styles.bold}>Mensagem:</Text> {req.message}
+                        </Text>
+                    ) : null}
                 </View>
-
-                {req.tipo === 'Reagendamento' && (
-                    <View style={styles.rescheduleColumn}>
-                        <Text style={styles.rescheduleTitle}>Nova Data:</Text>
-                        <View style={styles.infoRow}>
-                            <Calendar size={12} color="gray" />
-                            <Text style={styles.infoText}>{req.novaData}</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <Clock size={12} color="gray" />
-                            <Text style={styles.infoText}>{req.novaHora}</Text>
-                        </View>
-                    </View>
-                )}
             </View>
 
             <View style={styles.cardFooter}>
-                <Text style={styles.dateText}>Solicitada em {req.dataSolicitacao}</Text>
+                <Text style={styles.dateText}>{req.modality === 'ONLINE' ? 'Online' : 'Presencial'}</Text>
                 <TouchableOpacity style={styles.detailsButton}>
                     <Text style={styles.detailsButtonText}>Detalhes</Text>
                 </TouchableOpacity>

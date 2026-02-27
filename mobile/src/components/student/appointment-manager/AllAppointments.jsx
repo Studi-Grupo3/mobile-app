@@ -34,6 +34,9 @@ export const AllAppointments = ({ filter = "ALL" }) => {
                 professorName: a.teacherName,
                 professorTitle: 'Professor(a)',
                 professorImageUrl: null,
+                location: a.location || (a.modality === 'ONLINE' ? 'Online' : 'Presencial'),
+                online: a.modality === 'ONLINE',
+                totalValue: a.price,
             }));
             setAppointments(mockData);
             setError(null);
@@ -67,17 +70,22 @@ export const AllAppointments = ({ filter = "ALL" }) => {
                 displayProfTitle: translateProfessorTitle(appt.professorTitle)
             };
         }).filter(app => {
-            switch (filter) {
-                case "ALL": return true;
-                case "UPCOMING": return ["SCHEDULED", "CANCELLED"].includes(app.status);
-                case "CONFIRMED": return app.status === "SCHEDULED";
-                case "PENDING": return app.status === "PENDING";
-                case "CANCELLED": return app.status === "CANCELLED";
-                case "COMPLETED": return app.status === "COMPLETED";
-                case "ONLINE": return app.online;
-                case "OFFLINE": return !app.online;
-                default: return true;
+            const f = typeof filter === 'object' ? filter : { status: filter, subject: 'ALL', modality: 'ALL' };
+            // Status filter
+            if (f.status && f.status !== 'ALL') {
+                if (f.status === 'COMPLETED' && app.status !== 'COMPLETED') return false;
+                if (f.status === 'CANCELLED' && app.status !== 'CANCELLED') return false;
+                if (f.status === 'CONFIRMED' && app.status !== 'SCHEDULED') return false;
+                if (f.status === 'PENDING' && app.status !== 'PENDING') return false;
             }
+            // Subject filter
+            if (f.subject && f.subject !== 'ALL' && app.subject !== f.subject) return false;
+            // Modality filter
+            if (f.modality && f.modality !== 'ALL') {
+                if (f.modality === 'ONLINE' && !app.online) return false;
+                if (f.modality === 'OFFLINE' && app.online) return false;
+            }
+            return true;
         });
     };
 
