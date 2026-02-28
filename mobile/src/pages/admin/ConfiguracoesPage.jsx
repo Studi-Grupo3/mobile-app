@@ -4,8 +4,7 @@ import { SecuritySettings } from '../../components/admin/settings/SecuritySettin
 
 export default function ConfiguracoesPage() {
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.pageTitle}>Configurações</Text>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <View style={styles.card}>
                 <Text style={styles.sectionTitle}>Segurança</Text>
                 <SecuritySettings />
@@ -17,29 +16,26 @@ export default function ConfiguracoesPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6', // gray-100
-        padding: 16,
+        backgroundColor: '#F3F4F6',
     },
-    pageTitle: {
-        fontSize: 24, // text-2xl
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
-        marginBottom: 24,
+    content: {
+        padding: 16,
+        paddingBottom: 32,
     },
     card: {
         backgroundColor: 'white',
-        borderRadius: 8,
+        borderRadius: 12,
         padding: 16,
-        elevation: 1,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
         marginBottom: 16,
     },
     sectionTitle: {
-        fontSize: 18, // text-lg
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '700',
         marginBottom: 16,
         color: '#1F2937', // gray-800
     },

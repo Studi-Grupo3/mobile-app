@@ -42,7 +42,6 @@ export default function ProfilePage() {
                 role: 'Professor',
                 memberSince: 'Mar 2024',
                 totalClasses: 87,
-                rating: 4.8,
                 registrationComplete: false,
             });
         } else {
@@ -160,11 +159,6 @@ export default function ProfilePage() {
                                 <View style={styles.statItem}>
                                     <Text style={styles.statValue}>{profileData?.totalClasses || 0}</Text>
                                     <Text style={styles.statLabel}>Aulas</Text>
-                                </View>
-                                <View style={styles.statDivider} />
-                                <View style={styles.statItem}>
-                                    <Text style={styles.statValue}>{profileData?.rating || '-'}</Text>
-                                    <Text style={styles.statLabel}>Avaliação</Text>
                                 </View>
                                 <View style={styles.statDivider} />
                                 <View style={styles.statItem}>

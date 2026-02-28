@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowRight } from 'lucide-react-native';
 
 const CardPanelItem = ({ title, description, buttonLink, colorStyles, route }) => {
@@ -27,6 +28,7 @@ const CardPanelItem = ({ title, description, buttonLink, colorStyles, route }) =
 };
 
 export default function TeacherInitialPage() {
+    const insets = useSafeAreaInsets();
     const [isCadastroCompleto, setIsCadastroCompleto] = useState(false);
 
     useEffect(() => {
@@ -55,17 +57,17 @@ export default function TeacherInitialPage() {
             route: "Classes",
         },
         {
-            title: "Solicitações",
-            description: "Visualize as últimas solicitações.",
-            buttonLink: "Ver solicitações →",
+            title: "Histórico",
+            description: "Visualize o histórico de aulas.",
+            buttonLink: "Ver histórico →",
             colorStyles: { bg: "#FEFCE8", textTitle: "#A16207", buttonText: "#A16207", arrowColor: "#A16207" }, // yellow-50, yellow-700
-            route: "Requests",
+            route: "Classes",
         },
     ];
 
     return (
         <ScrollView style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                 <Text style={styles.headerTitle}>Painel do Professor</Text>
             </View>
 
@@ -75,7 +77,7 @@ export default function TeacherInitialPage() {
                         Bem-vindo(a) ao Painel do Professor
                     </Text>
                     <Text style={styles.welcomeText}>
-                        Aqui você pode completar seu cadastro, gerenciar suas aulas e verificar solicitações.
+                        Aqui você pode completar seu cadastro, gerenciar suas aulas e consultar o histórico.
                     </Text>
                 </View>
 
@@ -96,16 +98,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#F9FAFB', // gray-50
     },
     header: {
-        backgroundColor: 'white',
+        backgroundColor: '#3970B7',
         padding: 16,
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB', // gray-200
     },
     headerTitle: {
-        fontSize: 18, // text-lg
+        fontSize: 18,
         fontWeight: '600',
-        color: '#1F2937', // gray-800
+        color: '#FFFFFF',
     },
     content: {
         padding: 16,

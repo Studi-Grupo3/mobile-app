@@ -138,4 +138,14 @@ export const teacherService = {
             responseType: 'arraybuffer'
         }).then(res => res.data);
     },
+
+    getAvailability: async (teacherId) => {
+        const headers = await authHeader();
+        return api.get(`/teachers/${teacherId}/availability`, { headers }).then(res => res.data);
+    },
+
+    saveAvailability: async (teacherId, availability) => {
+        const headers = await authHeader();
+        return api.put(`/teachers/${teacherId}/availability`, availability, { headers }).then(res => res.data);
+    },
 };

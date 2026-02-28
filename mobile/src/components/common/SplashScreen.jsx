@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
 import { BookOpen, Star } from 'lucide-react-native';
+import Logo from '../../../assets/logo.svg';
 
 const { width, height } = Dimensions.get('window');
 
@@ -128,11 +129,13 @@ export default function SplashScreen({ onFinish }) {
                     transform: [{ scale: logoScale }],
                     opacity: logoOpacity,
                 }]}>
-                    <Image
-                        source={require('../../../assets/logoBranco.png')}
-                        style={styles.logoImage}
-                        resizeMode="contain"
-                    />
+                    <View style={styles.logoWrapper}>
+                        <Logo
+                            width={320}
+                            height={186}
+                            preserveAspectRatio="xMidYMid meet"
+                        />
+                    </View>
                 </Animated.View>
 
                 {/* Subtitle */}
@@ -221,10 +224,14 @@ const styles = StyleSheet.create({
     logoContainer: {
         marginBottom: 32,
         alignItems: 'center',
+        overflow: 'visible',
     },
-    logoImage: {
-        width: 220,
-        height: 220,
+    logoWrapper: {
+        width: 320,
+        height: 186,
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'visible',
     },
     subtitle: {
         fontSize: 16,

@@ -251,7 +251,6 @@ export const mockTeacherStats = {
     completedLessons: 142,
     cancelledLessons: 6,
     totalStudents: 23,
-    averageRating: 4.8,
     totalHoursWorked: 234,
     monthlyEarnings: 3200.0,
     aulasHoje: 3,

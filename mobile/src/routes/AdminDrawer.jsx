@@ -1,25 +1,78 @@
-import React from 'react';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Home, Users, Calendar, Settings, DollarSign, FileText, UserPlus, User } from 'lucide-react-native';
+import React, { useContext } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { Home, Users, Calendar, Settings, DollarSign, UserPlus, LogOut } from 'lucide-react-native';
+import { AuthContext } from '../context/authContext';
 
 import VisaoGeralPage from '../pages/admin/VisaoGeralPage';
 import AgendamentosPage from '../pages/admin/AgendamentosPage';
 import ProfessoresPage from '../pages/admin/ProfessoresPage';
 import GerenciamentoProfessoresPage from '../pages/admin/GerenciamentoProfessoresPage';
 import PagamentosPage from '../pages/admin/PagamentosPage';
-import RelatoriosPage from '../pages/admin/RelatoriosPage';
 import ConfiguracoesPage from '../pages/admin/ConfiguracoesPage';
-import ProfilePage from '../pages/common/ProfilePage';
 
 const Drawer = createDrawerNavigator();
+
+function CustomDrawerContent(props) {
+    const { logout } = useContext(AuthContext);
+
+    const handleLogout = () => {
+        Alert.alert('Sair', 'Deseja realmente sair da conta?', [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+                text: 'Sair',
+                style: 'destructive',
+                onPress: async () => {
+                    await logout();
+                },
+            },
+        ]);
+    };
+
+    return (
+        <View style={{ flex: 1 }}>
+            <DrawerContentScrollView {...props}>
+                <DrawerItemList {...props} />
+            </DrawerContentScrollView>
+            <TouchableOpacity style={drawerStyles.logoutButton} onPress={handleLogout}>
+                <LogOut size={20} color="#EF4444" />
+                <Text style={drawerStyles.logoutText}>Sair da conta</Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const drawerStyles = StyleSheet.create({
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        paddingBottom: 28,
+        borderTopWidth: 1,
+        borderTopColor: '#E5E7EB',
+        gap: 12,
+    },
+    logoutText: {
+        color: '#EF4444',
+        fontWeight: '700',
+        fontSize: 14,
+    },
+});
 
 export function AdminDrawer() {
     return (
         <Drawer.Navigator
+            drawerContent={(props) => <CustomDrawerContent {...props} />}
             screenOptions={{
-                headerTintColor: '#3970B7',
-                drawerActiveTintColor: '#3970B7',
-                drawerActiveBackgroundColor: '#EFF6FF',
+                headerStyle: {
+                    backgroundColor: '#3970B7',
+                },
+                headerTintColor: '#FFFFFF',
+                headerTitleStyle: {
+                    fontWeight: '600',
+                },
+                drawerActiveTintColor: '#FFFFFF',
+                drawerActiveBackgroundColor: '#3970B7',
                 drawerInactiveTintColor: '#64748B',
                 drawerStyle: {
                     backgroundColor: '#FFFFFF',
@@ -76,30 +129,12 @@ export function AdminDrawer() {
                 }}
             />
             <Drawer.Screen
-                name="Relatorios"
-                component={RelatoriosPage}
-                options={{
-                    drawerIcon: ({ color, size }) => <FileText color={color} size={size} />,
-                    drawerLabel: 'Relatórios',
-                    title: 'Relatórios'
-                }}
-            />
-            <Drawer.Screen
                 name="Configuracoes"
                 component={ConfiguracoesPage}
                 options={{
                     drawerIcon: ({ color, size }) => <Settings color={color} size={size} />,
                     drawerLabel: 'Configurações',
                     title: 'Configurações'
-                }}
-            />
-            <Drawer.Screen
-                name="Perfil"
-                component={ProfilePage}
-                options={{
-                    drawerIcon: ({ color, size }) => <User color={color} size={size} />,
-                    drawerLabel: 'Meu Perfil',
-                    title: 'Perfil'
                 }}
             />
         </Drawer.Navigator>

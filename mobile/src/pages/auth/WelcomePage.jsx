@@ -161,7 +161,7 @@ export default function WelcomePage() {
                         <View style={styles.statDivider} />
                         <StatItem value="50+" label="Professores" />
                         <View style={styles.statDivider} />
-                        <StatItem value="4.9" label="Avaliação" />
+                        <StatItem value="1000+" label="Aulas" />
                     </View>
                 </Animated.View>
 

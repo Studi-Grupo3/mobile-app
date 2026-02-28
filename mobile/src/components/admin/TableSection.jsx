@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react-native';
 
 const ITEMS_PER_PAGE = 5;
@@ -20,24 +20,25 @@ export function TableSection({ title, columns, data, action }) {
         })
     );
 
-    const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
     const paginatedData = filteredData.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
 
-    const renderCard = ({ item }) => (
-        <View style={styles.card}>
+    const renderCard = (item, index) => (
+        <View key={index} style={styles.card}>
             {columns.map((col, i) => {
                 const content = col.render ? col.render(item) : item[col.accessor];
                 let displayContent = content;
 
-                if (!col.render && col.accessor === 'status') {
+                if (!col.render && (col.accessor === 'status' || col.accessor === 'paymentStatus')) {
                     const statusVal = item[col.accessor];
-                    const isGreen = statusVal === 'Ativo';
-                    const isRed = statusVal === 'Inativo';
-                    const bg = isGreen ? '#dcfce7' : isRed ? '#fee2e2' : '#f3f4f6';
-                    const txt = isGreen ? '#166534' : isRed ? '#991b1b' : '#1f2937';
+                    const isGreen = statusVal === 'Ativo' || statusVal === 'Pago' || statusVal === 'Concluído' || statusVal === 'PAID';
+                    const isYellow = statusVal === 'Pendente' || statusVal === 'Agendado' || statusVal === 'PENDING';
+                    const isRed = statusVal === 'Inativo' || statusVal === 'Cancelado' || statusVal === 'CANCELLED';
+                    const bg = isGreen ? '#dcfce7' : isYellow ? '#FEF9C3' : isRed ? '#fee2e2' : '#f3f4f6';
+                    const txt = isGreen ? '#166534' : isYellow ? '#92400E' : isRed ? '#991b1b' : '#1f2937';
 
                     displayContent = (
                         <View style={[styles.statusBadge, { backgroundColor: bg }]}>
@@ -79,15 +80,13 @@ export function TableSection({ title, columns, data, action }) {
                 </View>
             </View>
 
-            <FlatList
-                data={paginatedData}
-                keyExtractor={(_, index) => String(index)}
-                renderItem={renderCard}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={
+            <View style={styles.listContent}>
+                {paginatedData.length === 0 ? (
                     <Text style={styles.emptyText}>Nenhum registro encontrado.</Text>
-                }
-            />
+                ) : (
+                    paginatedData.map((item, index) => renderCard(item, index))
+                )}
+            </View>
 
             {totalPages > 1 && (
                 <View style={styles.pagination}>
@@ -100,7 +99,7 @@ export function TableSection({ title, columns, data, action }) {
                     </TouchableOpacity>
 
                     <Text style={styles.pageInfo}>
-                        Página {currentPage} de {totalPages}
+                        {currentPage} / {totalPages}
                     </Text>
 
                     <TouchableOpacity
@@ -126,7 +125,6 @@ const styles = StyleSheet.create({
         shadowRadius: 1,
         elevation: 1,
         marginBottom: 24,
-        flex: 1,
         overflow: 'hidden',
     },
     header: {

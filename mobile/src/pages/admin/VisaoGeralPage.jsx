@@ -4,7 +4,8 @@ import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { mockOverviewDashService } from '../../mocks/mockServices';
-import { DollarSign, BarChart2, CheckCircle } from 'lucide-react-native';
+import { DollarSign, Users, Clock, CalendarCheck } from 'lucide-react-native';
+import { translateSubject, translatePaymentStatus } from '../../utils/tradutionUtils';
 
 export default function VisaoGeralPage() {
     const [stats, setStats] = useState({
@@ -41,43 +42,27 @@ export default function VisaoGeralPage() {
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.pageTitle}>Visão Geral</Text>
-
-            <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                    <StatCard
-                        title={`R$ ${stats.totalRevenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
-                        subtitle="Receita Total"
-                        icon={<DollarSign size={20} color="#3970B7" />}
-                        percentageColor="text-green-500"
-                    />
-                </View>
-                <View style={styles.statItem}>
-                    <StatCard
-                        title={stats.totalTeachers}
-                        subtitle="Professores"
-                        icon={<BarChart2 size={20} color="#3970B7" />}
-                        percentageColor="text-green-500"
-                    />
-                </View>
-                <View style={styles.statItem}>
-                    <StatCard
-                        title={`R$ ${stats.pendingAmount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
-                        subtitle="Pendentes"
-                        icon={<DollarSign size={20} color="#3970B7" />}
-                        percentageColor="text-red-500"
-                    />
-                </View>
-                <View style={styles.statItem}>
-                    <StatCard
-                        title={stats.totalAppointments}
-                        subtitle="Agendamentos"
-                        icon={<CheckCircle size={20} color="#3970B7" />}
-                        percentageColor="text-green-500"
-                    />
-                </View>
-            </View>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+            <StatCard
+                title={`R$ ${stats.totalRevenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
+                subtitle="Receita Total"
+                icon={<DollarSign size={20} color="#3970B7" />}
+            />
+            <StatCard
+                title={stats.totalTeachers}
+                subtitle="Professores"
+                icon={<Users size={20} color="#3970B7" />}
+            />
+            <StatCard
+                title={`R$ ${stats.pendingAmount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
+                subtitle="Valor Pendente"
+                icon={<Clock size={20} color="#E8A317" />}
+            />
+            <StatCard
+                title={stats.totalAppointments}
+                subtitle="Agendamentos"
+                icon={<CalendarCheck size={20} color="#3970B7" />}
+            />
 
             <ChartSection charts={charts} />
 
@@ -85,8 +70,19 @@ export default function VisaoGeralPage() {
                 title="Pagamentos Recentes"
                 data={payments}
                 columns={[
-                    { label: 'Prof.', accessor: 'teacherName' },
-                    { label: 'Status', accessor: 'paymentStatus' }
+                    { label: 'Professor', accessor: 'teacherName' },
+                    { label: 'Matéria', accessor: 'subject', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>{translateSubject(row.subject)}</Text> },
+                    { label: 'Valor/Hora', accessor: 'hourlyRate' },
+                    { label: 'Total', accessor: 'totalValue' },
+                    { label: 'Status', accessor: 'paymentStatus', render: (row) => {
+                        const translated = translatePaymentStatus(row.paymentStatus);
+                        const isPaid = row.paymentStatus === 'PAID' || row.paymentStatus === 'Pago';
+                        return (
+                            <View style={{ backgroundColor: isPaid ? '#DCFCE7' : '#FEF9C3', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 }}>
+                                <Text style={{ color: isPaid ? '#166534' : '#92400E', fontSize: 11, fontWeight: '700' }}>{translated}</Text>
+                            </View>
+                        );
+                    }},
                 ]}
             />
         </ScrollView>
@@ -96,28 +92,15 @@ export default function VisaoGeralPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6', // gray-100
+        backgroundColor: '#F3F4F6',
+    },
+    content: {
         padding: 16,
+        paddingBottom: 32,
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    pageTitle: {
-        fontSize: 24, // text-2xl
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
-        marginBottom: 24,
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginBottom: 24,
-        gap: 16,
-    },
-    statItem: {
-        width: '47%',
     },
 });

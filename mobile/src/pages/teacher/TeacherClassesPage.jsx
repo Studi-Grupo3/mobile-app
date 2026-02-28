@@ -1,36 +1,53 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
-import { teacherService } from '../../services/teacherService';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+    View, Text, ScrollView, ActivityIndicator, StyleSheet,
+    TouchableOpacity,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { mockTeacherService } from '../../mocks/mockServices';
 import { translateSubject } from '../../utils/tradutionUtils';
 import { TeacherAppointmentCard } from '../../components/teacher/TeacherAppointmentCard';
 import { AppointmentModal } from '../../components/common/AppointmentModal';
 import { InfoCard } from '../../components/common/InfoCard';
-import { DollarSign, Users, Clock } from 'lucide-react-native';
+import { BookOpen, Clock, Calendar } from 'lucide-react-native';
+
+const TABS = [
+    { key: 'upcoming', label: 'Próximas' },
+    { key: 'history', label: 'Histórico' },
+];
 
 export default function TeacherClassesPage() {
+    const insets = useSafeAreaInsets();
+    const [activeTab, setActiveTab] = useState('upcoming');
+
+    /* data */
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
-    const [lessons, setLessons] = useState([]);
-    const [loadingLessons, setLoadingLessons] = useState(true);
-    const [errorLessons, setErrorLessons] = useState(null);
+    const [upcoming, setUpcoming] = useState([]);
+    const [loadingUpcoming, setLoadingUpcoming] = useState(true);
+    const [history, setHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(true);
+
+    /* modal */
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [openModal, setOpenModal] = useState(false);
 
-    const fetchLessons = () => {
-        setLoadingLessons(true);
+    /* ---- fetch helpers ---- */
+    const fetchUpcoming = useCallback(() => {
+        setLoadingUpcoming(true);
         mockTeacherService.getProximasAulas()
-            .then(data => {
-                const safeData = Array.isArray(data) ? data : [];
-                setLessons(safeData);
-                setErrorLessons(null);
-            })
-            .catch(err => {
-                console.error("Erro fetchLessons:", err);
-                setErrorLessons("Não foi possível carregar as aulas.");
-            })
-            .finally(() => setLoadingLessons(false));
-    };
+            .then(d => setUpcoming(Array.isArray(d) ? d : []))
+            .catch(() => setUpcoming([]))
+            .finally(() => setLoadingUpcoming(false));
+    }, []);
+
+    const fetchHistory = useCallback(() => {
+        setLoadingHistory(true);
+        mockTeacherService.getLessonsHistory()
+            .then(d => setHistory(Array.isArray(d) ? d : []))
+            .catch(() => setHistory([]))
+            .finally(() => setLoadingHistory(false));
+    }, []);
 
     useEffect(() => {
         mockTeacherService.getStats()
@@ -38,95 +55,125 @@ export default function TeacherClassesPage() {
             .catch(() => setStats(null))
             .finally(() => setLoadingStats(false));
 
-        fetchLessons();
+        fetchUpcoming();
+        fetchHistory();
     }, []);
 
+    /* ---- modal ---- */
     const handleDetails = (l) => {
-        const adapted = {
+        setSelectedLesson({
             ...l,
             professorName: l.studentName,
-            professorTitle: "Aluno",
+            professorTitle: 'Aluno',
             professorImageUrl: null,
             subject: l.subject,
             dateTime: `${l.date}T${l.time}`,
-            duration: l.duration
-        };
-        setSelectedLesson(adapted);
+            duration: l.duration,
+        });
         setOpenModal(true);
+    };
+
+    /* ---- tab content ---- */
+    const renderUpcoming = () => {
+        if (loadingUpcoming) return <ActivityIndicator size="large" color="#3970B7" style={{ marginTop: 20 }} />;
+        if (upcoming.length === 0) return <Text style={styles.emptyText}>Nenhuma aula agendada.</Text>;
+        return upcoming.map(l => (
+            <View key={l.id} style={styles.lessonItem}>
+                <TeacherAppointmentCard
+                    subject={translateSubject(l.subject)}
+                    studentName={l.studentName}
+                    studentPhone={null}
+                    studentImageUrl={null}
+                    date={new Date(l.date + 'T' + l.time).toLocaleDateString('pt-BR')}
+                    time={l.time}
+                    duration={`${l.duration}min`}
+                    location={l.modality === 'ONLINE' ? 'Online' : 'Presencial'}
+                    status={l.status}
+                    online={l.modality === 'ONLINE'}
+                    onDetailsClick={() => handleDetails(l)}
+                />
+            </View>
+        ));
+    };
+
+    const renderHistory = () => {
+        if (loadingHistory) return <ActivityIndicator size="large" color="#3970B7" style={{ marginTop: 20 }} />;
+        if (history.length === 0) return <Text style={styles.emptyText}>Nenhum registro no histórico.</Text>;
+        return history.map(l => (
+            <View key={l.id} style={styles.lessonItem}>
+                <TeacherAppointmentCard
+                    subject={translateSubject(l.subject)}
+                    studentName={l.studentName}
+                    studentPhone={null}
+                    studentImageUrl={null}
+                    date={new Date(l.date + 'T' + l.time).toLocaleDateString('pt-BR')}
+                    time={l.time}
+                    duration={`${l.duration}min`}
+                    location={l.modality === 'ONLINE' ? 'Online' : 'Presencial'}
+                    status={l.status}
+                    online={l.modality === 'ONLINE'}
+                    onDetailsClick={() => handleDetails(l)}
+                />
+            </View>
+        ));
     };
 
     return (
         <View style={styles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
                 <Text style={styles.headerTitle}>Minhas Aulas</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.pageTitle}>Bem-vindo, Professor!</Text>
+                {/* KPIs - single column */}
+                <InfoCard
+                    title="Aulas Hoje"
+                    value={loadingStats ? '...' : (stats?.aulasHoje ?? 0)}
+                    icon={<BookOpen size={20} color="#3970B7" />}
+                    subtitle={loadingStats ? '' : stats?.aulasHojeSubtitle}
+                />
+                <InfoCard
+                    title="Aulas na Semana"
+                    value={loadingStats ? '...' : (stats?.aulasSemana ?? 0)}
+                    icon={<Calendar size={20} color="#16A34A" />}
+                    subtitle={loadingStats ? '' : stats?.aulasSemanaSubtitle}
+                />
+                <InfoCard
+                    title="Horas Ministradas"
+                    value={loadingStats ? '...' : (stats?.horasMinistradas ?? '0h')}
+                    icon={<Clock size={20} color="#F59E0B" />}
+                    subtitle={loadingStats ? '' : stats?.horasMinistradasSubtitle}
+                />
 
-                {/* Stats Cards */}
-                <View style={styles.statsContainer}>
-                    <View style={styles.halfWidth}>
-                        <InfoCard
-                            title="Aulas Hoje"
-                            value={loadingStats ? "..." : (stats?.aulasHoje ?? 0)}
-                            icon={<DollarSign size={20} color="gray" />}
-                            subtitle={loadingStats ? "" : stats?.aulasHojeSubtitle}
-                        />
-                    </View>
-                    <View style={styles.halfWidth}>
-                        <InfoCard
-                            title="Semana"
-                            value={loadingStats ? "..." : (stats?.aulasSemana ?? 0)}
-                            icon={<Users size={20} color="gray" />}
-                            subtitle={loadingStats ? "" : stats?.aulasSemanaSubtitle}
-                        />
-                    </View>
-                    <View style={styles.fullWidth}>
-                        <InfoCard
-                            title="Horas Ministradas"
-                            value={loadingStats ? "..." : (stats?.horasMinistradas ?? "0h")}
-                            icon={<Clock size={20} color="gray" />}
-                            subtitle={loadingStats ? "" : stats?.horasMinistradasSubtitle}
-                        />
-                    </View>
+                {/* Inner Tabs */}
+                <View style={styles.tabBar}>
+                    {TABS.map(t => {
+                        const active = activeTab === t.key;
+                        return (
+                            <TouchableOpacity
+                                key={t.key}
+                                style={[styles.tab, active && styles.tabActive]}
+                                onPress={() => setActiveTab(t.key)}
+                            >
+                                <Text style={[styles.tabText, active && styles.tabTextActive]}>{t.label}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
 
-                {/* Lessons List */}
-                <Text style={styles.sectionTitle}>Próximas Aulas</Text>
+                {/* Tab content */}
+                {activeTab === 'upcoming' && renderUpcoming()}
+                {activeTab === 'history' && renderHistory()}
 
-                {loadingLessons && <ActivityIndicator size="large" color="#3970B7" />}
-                {errorLessons && <Text style={styles.errorText}>{errorLessons}</Text>}
-
-                {!loadingLessons && !errorLessons && lessons.length === 0 && (
-                    <Text style={styles.emptyText}>Nenhuma aula agendada.</Text>
-                )}
-
-                {!loadingLessons && !errorLessons && lessons.map(l => (
-                    <View key={l.id} style={styles.lessonItem}>
-                        <TeacherAppointmentCard
-                            subject={translateSubject(l.subject)}
-                            studentName={l.studentName}
-                            studentPhone={null}
-                            studentImageUrl={null}
-                            date={new Date(l.date + "T" + l.time).toLocaleDateString("pt-BR")}
-                            time={l.time}
-                            duration={`${l.duration}min`}
-                            location={l.modality === "ONLINE" ? "Online" : "Presencial"}
-                            status={l.status}
-                            online={l.modality === "ONLINE"}
-                            onDetailsClick={() => handleDetails(l)}
-                        />
-                    </View>
-                ))}
+                <View style={{ height: 30 }} />
             </ScrollView>
 
             <AppointmentModal
                 isOpen={openModal}
                 onClose={() => setOpenModal(false)}
                 appointment={selectedLesson}
-                onUpdate={fetchLessons}
+                onUpdate={() => { fetchUpcoming(); fetchHistory(); }}
                 isTeacherView={true}
             />
         </View>
@@ -136,56 +183,62 @@ export default function TeacherClassesPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f9fbfc',
+        backgroundColor: '#F9FAFB',
     },
     header: {
-        backgroundColor: 'white',
+        backgroundColor: '#3970B7',
         padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB', // gray-200
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1F2937', // gray-800
+        color: '#FFFFFF',
     },
     scrollContent: {
         padding: 16,
     },
-    pageTitle: {
-        fontSize: 24, // text-2xl
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
-        marginBottom: 24,
-    },
-    statsContainer: {
+
+    /* ── Tabs ───────────────────────────── */
+    tabBar: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        gap: 16,
-        marginBottom: 32,
-    },
-    halfWidth: {
-        width: '47%', // approx 48% with gap
-        marginBottom: 8,
-    },
-    fullWidth: {
-        width: '100%',
-    },
-    sectionTitle: {
-        fontSize: 20, // text-xl
-        fontWeight: 'bold',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+        padding: 3,
+        marginTop: 20,
         marginBottom: 16,
     },
-    errorText: {
-        color: '#EF4444', // red-500
+    tab: {
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
     },
+    tabActive: {
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    tabText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#6B7280',
+    },
+    tabTextActive: {
+        color: '#3970B7',
+        fontWeight: '700',
+    },
+
+    /* ── Lists ──────────────────────────── */
     emptyText: {
-        color: '#6B7280', // gray-500
+        color: '#6B7280',
         textAlign: 'center',
-        paddingVertical: 16,
+        paddingVertical: 24,
+        fontSize: 14,
     },
     lessonItem: {
-        marginBottom: 16,
+        marginBottom: 12,
     },
 });

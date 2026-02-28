@@ -1,122 +1,221 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InfoCard } from '../../components/common/InfoCard';
-import { GraphCard } from '../../components/admin/GraphCard';
-import { teacherService } from '../../services/teacherService';
 import { mockTeacherService } from '../../mocks/mockServices';
 import { translateSubject } from '../../utils/tradutionUtils';
-import { BookOpen, AlertCircle, Clock } from 'lucide-react-native';
+import { BookOpen, AlertCircle, Clock, TrendingUp, Users, DollarSign } from 'lucide-react-native';
+import { BarChart } from 'react-native-chart-kit';
+
+const screenWidth = Dimensions.get('window').width;
 
 const mapWeekdayToLabel = {
-    1: "Domingo", 2: "Segunda", 3: "Terça", 4: "Quarta", 5: "Quinta", 6: "Sexta", 7: "Sábado",
+    1: "Dom", 2: "Seg", 3: "Ter", 4: "Qua", 5: "Qui", 6: "Sex", 7: "Sáb",
 };
 
+/** Simple horizontal bar row for discipline/weekday breakdowns */
+const HorizontalBarItem = ({ label, value, maxValue, color }) => {
+    const pct = maxValue > 0 ? (value / maxValue) * 100 : 0;
+    return (
+        <View style={barStyles.row}>
+            <Text style={barStyles.label} numberOfLines={1}>{label}</Text>
+            <View style={barStyles.trackOuter}>
+                <View style={[barStyles.trackInner, { width: `${pct}%`, backgroundColor: color }]} />
+            </View>
+            <Text style={barStyles.value}>{value}</Text>
+        </View>
+    );
+};
+
+const barStyles = StyleSheet.create({
+    row: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    label: { width: 80, fontSize: 13, color: '#374151', fontWeight: '500' },
+    trackOuter: { flex: 1, height: 20, backgroundColor: '#F3F4F6', borderRadius: 10, overflow: 'hidden', marginHorizontal: 8 },
+    trackInner: { height: '100%', borderRadius: 10 },
+    value: { width: 36, textAlign: 'right', fontSize: 13, fontWeight: '600', color: '#111827' },
+});
+
 export default function TeacherGraph() {
+    const insets = useSafeAreaInsets();
     const [metrics, setMetrics] = useState([]);
-    const [chartsTop, setChartsTop] = useState([]);
-    const [chartsBottom, setChartsBottom] = useState([]);
+    const [chartData, setChartData] = useState(null);
+    const [disciplineData, setDisciplineData] = useState([]);
+    const [weekdayData, setWeekdayData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setLoading(true);
-        mockTeacherService.getDashboard()
-            .then(data => {
-                // Handle both real API format and mock format
-                const totalMinutes = data.totalHours || (data.stats?.totalHoursWorked ?? 0) * 60;
-                const hours = Math.floor(totalMinutes / 60);
-                const minutes = totalMinutes % 60;
-
-                const totalLessons = data.totalLessons ?? data.stats?.totalLessons ?? 0;
-                const cancellationPct = data.cancellationPercentage ?? 
-                    (data.stats?.cancelledLessons && data.stats?.totalLessons 
-                        ? (data.stats.cancelledLessons / data.stats.totalLessons * 100) 
-                        : 0);
+        Promise.all([
+            mockTeacherService.getDashboard(),
+            mockTeacherService.getChartData(),
+        ])
+            .then(([dashboard, charts]) => {
+                const stats = dashboard.stats || dashboard;
+                const totalLessons = stats.totalLessons ?? 0;
+                const cancelledLessons = stats.cancelledLessons ?? 0;
+                const cancellationPct = totalLessons > 0
+                    ? (cancelledLessons / totalLessons * 100)
+                    : 0;
+                const totalHoursWorked = stats.totalHoursWorked ?? 0;
+                const totalStudents = stats.totalStudents ?? 0;
+                const completedLessons = stats.completedLessons ?? 0;
+                const upcomingLessons = stats.upcomingLessons ?? 0;
+                const monthlyEarnings = stats.monthlyEarnings ?? 0;
 
                 setMetrics([
                     {
                         title: "Total de Aulas",
                         value: totalLessons,
-                        subtitle: "Aulas registradas",
-                        icon: <BookOpen size={20} color="gray" />
+                        subtitle: `${completedLessons} concluídas`,
+                        icon: <BookOpen size={20} color="#3970B7" />,
+                    },
+                    {
+                        title: "Próximas Aulas",
+                        value: upcomingLessons,
+                        subtitle: "Agendadas",
+                        icon: <TrendingUp size={20} color="#16A34A" />,
                     },
                     {
                         title: "Cancelamentos",
-                        value: `${Number(cancellationPct).toFixed(1)}%`,
-                        subtitle: "Taxa de cancelamento",
-                        icon: <AlertCircle size={20} color="gray" />
+                        value: `${cancellationPct.toFixed(1)}%`,
+                        subtitle: `${cancelledLessons} aulas`,
+                        icon: <AlertCircle size={20} color="#EF4444" />,
                     },
                     {
-                        title: "Tempo Total",
-                        value: `${hours}h ${minutes}m`,
-                        subtitle: "Tempo ministrado",
-                        icon: <Clock size={20} color="gray" />
+                        title: "Horas Trabalhadas",
+                        value: `${totalHoursWorked}h`,
+                        subtitle: "Total acumulado",
+                        icon: <Clock size={20} color="#F59E0B" />,
+                    },
+                    {
+                        title: "Alunos Atendidos",
+                        value: totalStudents,
+                        subtitle: "Total de alunos",
+                        icon: <Users size={20} color="#8B5CF6" />,
+                    },
+                    {
+                        title: "Faturamento Mensal",
+                        value: `R$ ${monthlyEarnings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+                        subtitle: "Mês atual",
+                        icon: <DollarSign size={20} color="#16A34A" />,
                     },
                 ]);
 
-                const byDiscipline = data.lessonsByDiscipline || [
+                // Chart data for monthly lessons
+                if (charts?.monthlyLessons) {
+                    setChartData({
+                        labels: charts.monthlyLessons.map(d => d.label),
+                        datasets: [{ data: charts.monthlyLessons.map(d => d.value) }],
+                    });
+                }
+
+                // Discipline breakdown
+                const byDiscipline = dashboard.lessonsByDiscipline || [
                     { subject: 'MATHEMATICS', count: 80 },
                     { subject: 'PHYSICS', count: 62 },
+                    { subject: 'PORTUGUESE', count: 45 },
+                    { subject: 'CHEMISTRY', count: 30 },
                 ];
+                setDisciplineData(byDiscipline);
 
-                const byWeekday = data.lessonsByWeekday || [
+                // Weekday breakdown
+                const byWeekday = dashboard.lessonsByWeekday || [
                     { weekday: 2, count: 25 },
                     { weekday: 3, count: 30 },
                     { weekday: 4, count: 28 },
                     { weekday: 5, count: 35 },
                     { weekday: 6, count: 20 },
                 ];
-
-                setChartsTop([{
-                    title: "Por Disciplinas",
-                    type: "bar",
-                    data: {
-                        labels: byDiscipline.map(d => translateSubject(d.subject).substring(0, 3)),
-                        datasets: [{
-                            data: byDiscipline.map(d => d.count)
-                        }]
-                    },
-                    color: "rgba(59, 130, 246, 0.5)"
-                }]);
-
-                setChartsBottom([{
-                    title: "Por Dia",
-                    type: "bar",
-                    data: {
-                        labels: byWeekday.map(w => (mapWeekdayToLabel[w.weekday] || String(w.weekday)).substring(0, 3)),
-                        datasets: [{
-                            data: byWeekday.map(w => w.count)
-                        }]
-                    },
-                    color: "rgba(59, 78, 246, 0.7)"
-                }]);
+                setWeekdayData(byWeekday);
             })
             .catch(err => console.error("Erro dashboard:", err))
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
+    if (loading) {
+        return (
+            <View style={styles.centered}>
+                <ActivityIndicator size="large" color="#3970B7" />
+            </View>
+        );
+    }
+
+    const maxDiscipline = Math.max(...disciplineData.map(d => d.count), 1);
+    const maxWeekday = Math.max(...weekdayData.map(d => d.count), 1);
+    const chartWidth = screenWidth - 64;
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.pageTitle}>Métricas e Desempenho</Text>
+            {/* Header */}
+            <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+                <Text style={styles.headerTitle}>Métricas</Text>
+            </View>
 
-            <View style={styles.metricsContainer}>
+            <View style={styles.content}>
+                <Text style={styles.pageTitle}>Métricas e Desempenho</Text>
+
+                {/* Stat cards - single column */}
                 {metrics.map((item, idx) => (
-                    <View key={idx} style={styles.metricItem}>
-                        <InfoCard {...item} />
-                    </View>
+                    <InfoCard key={idx} {...item} />
                 ))}
-            </View>
 
-            <View style={styles.chartsContainer}>
-                {chartsTop.map((cfg, i) => (
-                    <GraphCard key={`top-${i}`} title={cfg.title} data={cfg.data} />
-                ))}
-                {chartsBottom.map((cfg, i) => (
-                    <GraphCard key={`btm-${i}`} title={cfg.title} data={cfg.data} />
-                ))}
+                {/* Monthly Lessons Chart */}
+                {chartData && (
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Aulas por Mês</Text>
+                        <BarChart
+                            data={chartData}
+                            width={chartWidth}
+                            height={200}
+                            yAxisLabel=""
+                            yAxisSuffix=""
+                            chartConfig={{
+                                backgroundColor: '#ffffff',
+                                backgroundGradientFrom: '#ffffff',
+                                backgroundGradientTo: '#ffffff',
+                                decimalPlaces: 0,
+                                color: (opacity = 1) => `rgba(57, 112, 183, ${opacity})`,
+                                labelColor: () => '#6B7280',
+                                barPercentage: 0.6,
+                                style: { borderRadius: 8 },
+                            }}
+                            fromZero
+                            showValuesOnTopOfBars
+                            style={{ borderRadius: 8 }}
+                        />
+                    </View>
+                )}
+
+                {/* Discipline breakdown - horizontal bars */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Aulas por Disciplina</Text>
+                    {disciplineData.map((d, i) => (
+                        <HorizontalBarItem
+                            key={i}
+                            label={translateSubject(d.subject)}
+                            value={d.count}
+                            maxValue={maxDiscipline}
+                            color="#3B82F6"
+                        />
+                    ))}
+                </View>
+
+                {/* Weekday breakdown - horizontal bars */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Aulas por Dia da Semana</Text>
+                    {weekdayData.map((d, i) => (
+                        <HorizontalBarItem
+                            key={i}
+                            label={mapWeekdayToLabel[d.weekday] || String(d.weekday)}
+                            value={d.count}
+                            maxValue={maxWeekday}
+                            color="#8B5CF6"
+                        />
+                    ))}
+                </View>
+
+                <View style={{ height: 40 }} />
             </View>
-            <View style={{ height: 40 }} />
         </ScrollView>
     );
 }
@@ -124,33 +223,46 @@ export default function TeacherGraph() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB', // gray-50
-        padding: 16,
+        backgroundColor: '#F9FAFB',
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    pageTitle: {
-        fontSize: 24, // text-2xl
+    header: {
+        backgroundColor: '#3970B7',
+        padding: 16,
+    },
+    headerTitle: {
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#111827', // gray-900
-        marginBottom: 24,
+        color: '#FFFFFF',
     },
-    metricsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginBottom: 24,
-        gap: 16,
+    content: {
+        padding: 16,
     },
-    metricItem: {
-        width: '30%',
-        minWidth: 100,
-        flex: 1,
+    pageTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 20,
     },
-    chartsContainer: {
-        gap: 24,
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#1F2937',
+        marginBottom: 16,
     },
 });

@@ -17,9 +17,7 @@ export default function RelatoriosPage() {
     };
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.pageTitle}>Relatórios</Text>
-
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <View style={styles.summarySection}>
                 <Text style={styles.sectionTitle}>Resumos</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -60,14 +58,11 @@ export default function RelatoriosPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6', // gray-100
-        padding: 16,
+        backgroundColor: '#F3F4F6',
     },
-    pageTitle: {
-        fontSize: 24, // text-2xl
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
-        marginBottom: 24,
+    content: {
+        padding: 16,
+        paddingBottom: 32,
     },
     summarySection: {
         marginBottom: 24,
@@ -84,30 +79,25 @@ const styles = StyleSheet.create({
     tabsContainer: {
         flexDirection: 'row',
         marginBottom: 16,
-        backgroundColor: '#E5E7EB', // gray-200
+        backgroundColor: '#E8EEF5',
         padding: 4,
-        borderRadius: 8,
+        borderRadius: 10,
     },
     tabButton: {
         flex: 1,
         alignItems: 'center',
-        paddingVertical: 8,
-        borderRadius: 6,
+        paddingVertical: 10,
+        borderRadius: 8,
     },
     activeTab: {
-        backgroundColor: 'white',
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        backgroundColor: '#3970B7',
     },
     tabText: {
         textTransform: 'capitalize',
     },
     activeTabText: {
-        fontWeight: 'bold',
-        color: '#3970B7',
+        fontWeight: '700',
+        color: '#FFFFFF',
     },
     inactiveTabText: {
         color: '#6B7280', // gray-500

@@ -3,7 +3,8 @@ import { View, ScrollView, Text, ActivityIndicator, Alert, StyleSheet } from 're
 import { StatCard } from '../../components/admin/StatCard';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
 import { mockPaymentDashService as paymentDashService } from '../../mocks/mockServices';
-import { CreditCard, Wallet } from 'lucide-react-native';
+import { DollarSign, CreditCard, Wallet, TrendingUp } from 'lucide-react-native';
+import { translateSubject, translatePaymentStatus } from '../../utils/tradutionUtils';
 
 export default function PagamentosPage() {
     const [stats, setStats] = useState({
@@ -19,9 +20,8 @@ export default function PagamentosPage() {
     useEffect(() => {
         async function fetchData() {
             try {
-                // Mock month/year 
                 const [statsData, recentData] = await Promise.all([
-                    paymentDashService.getStats(2, 2025), // dynamic date needed
+                    paymentDashService.getStats(2, 2025),
                     paymentDashService.getRecent(2, 2025)
                 ]);
                 setStats(statsData);
@@ -35,10 +35,9 @@ export default function PagamentosPage() {
         fetchData();
     }, []);
 
-    const toggleStatus = async (item) => {
+    const doToggle = async (item) => {
         try {
             await paymentDashService.toggleStatus(item.id, 2, 2025);
-            // Reload
             const [statsData, recentData] = await Promise.all([
                 paymentDashService.getStats(2, 2025),
                 paymentDashService.getRecent(2, 2025)
@@ -50,40 +49,90 @@ export default function PagamentosPage() {
         }
     };
 
-    const filtered = payments.filter(p => !onlyPending || p.status === 'Pendente');
+    const toggleStatus = (item) => {
+        const isPaid = item.status === 'Pago' || item.status === 'PAID';
+        const action = isPaid ? 'Pendente' : 'Pago';
+        Alert.alert(
+            'Confirmar alteração',
+            `Deseja marcar o pagamento de ${item.name} como "${action}"?`,
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Confirmar', onPress: () => doToggle(item) },
+            ]
+        );
+    };
+
+    const filtered = payments.filter(p => !onlyPending || p.status === 'Pendente' || p.status === 'PENDING');
 
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.pageTitle}>Pagamentos</Text>
-
-            <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                    <StatCard title={`R$ ${stats.totalAmount}`} subtitle="Total" icon={<CreditCard size={20} color="#3970B7" />} />
-                </View>
-                <View style={styles.statItem}>
-                    <StatCard title={`R$ ${stats.pendingAmount}`} subtitle="Pendentes" icon={<Wallet size={20} color="#3970B7" />} />
-                </View>
-            </View>
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+            <StatCard
+                title={`R$ ${Number(stats.totalAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                subtitle="Total"
+                icon={<DollarSign size={20} color="#3970B7" />}
+            />
+            <StatCard
+                title={`R$ ${Number(stats.realizedAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                subtitle="Realizado"
+                icon={<CreditCard size={20} color="#22C55E" />}
+            />
+            <StatCard
+                title={`R$ ${Number(stats.pendingAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                subtitle="Pendente"
+                icon={<Wallet size={20} color="#E8A317" />}
+            />
+            <StatCard
+                title={`R$ ${Number(stats.averageAmountPerTeacher).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                subtitle="Média por Professor"
+                icon={<TrendingUp size={20} color="#3970B7" />}
+            />
 
             <View style={styles.filterContainer}>
-                <ToggleSwitch value={onlyPending} onValueChange={setOnlyPending} />
+                <ToggleSwitch checked={onlyPending} onChange={setOnlyPending} />
                 <Text style={styles.filterText}>Somente pendentes</Text>
             </View>
 
-            {filtered.map(item => (
-                <View key={item.id} style={styles.paymentCard}>
-                    <View>
-                        <Text style={styles.paymentName}>{item.name}</Text>
-                        <Text style={styles.paymentStatus}>{item.status}</Text>
-                    </View>
-                    <ToggleSwitch
-                        value={item.status === 'Pago'}
-                        onValueChange={() => toggleStatus(item)}
-                    />
+            {filtered.length === 0 && (
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>Nenhum pagamento encontrado.</Text>
                 </View>
-            ))}
+            )}
+
+            {filtered.map(item => {
+                const isPaid = item.status === 'Pago' || item.status === 'PAID';
+                const statusLabel = translatePaymentStatus(item.status);
+                return (
+                    <View key={item.id} style={styles.paymentCard}>
+                        <View style={styles.paymentHeader}>
+                            <Text style={styles.paymentName}>{item.name}</Text>
+                            <ToggleSwitch
+                                checked={isPaid}
+                                onChange={() => toggleStatus(item)}
+                            />
+                        </View>
+                        <Text style={styles.paymentSubject}>{translateSubject(item.subject)}</Text>
+                        <View style={styles.paymentDetails}>
+                            <View style={styles.paymentDetailItem}>
+                                <Text style={styles.detailLabel}>Valor/Hora</Text>
+                                <Text style={styles.detailValue}>R$ {Number(item.valuePerHour).toFixed(2)}</Text>
+                            </View>
+                            <View style={styles.paymentDetailItem}>
+                                <Text style={styles.detailLabel}>Horas</Text>
+                                <Text style={styles.detailValue}>{item.hours}h</Text>
+                            </View>
+                            <View style={styles.paymentDetailItem}>
+                                <Text style={styles.detailLabel}>Total</Text>
+                                <Text style={[styles.detailValue, { fontWeight: '700' }]}>R$ {Number(item.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
+                            </View>
+                        </View>
+                        <View style={[styles.statusBadge, { backgroundColor: isPaid ? '#DCFCE7' : '#FEF9C3' }]}>
+                            <Text style={{ color: isPaid ? '#166534' : '#92400E', fontSize: 11, fontWeight: '700' }}>{statusLabel}</Text>
+                        </View>
+                    </View>
+                );
+            })}
         </ScrollView>
     );
 }
@@ -91,59 +140,89 @@ export default function PagamentosPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6', // gray-100
+        backgroundColor: '#F3F4F6',
+    },
+    content: {
         padding: 16,
+        paddingBottom: 32,
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    pageTitle: {
-        fontSize: 24, // text-2xl
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
-        marginBottom: 24,
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginBottom: 24,
-        gap: 16,
-    },
-    statItem: {
-        width: '47%',
-    },
     filterContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 16,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 12,
     },
     filterText: {
         marginLeft: 8,
-        color: '#374151', // gray-700
+        color: '#374151',
+        fontWeight: '600',
+    },
+    emptyContainer: {
+        padding: 24,
+        alignItems: 'center',
+    },
+    emptyText: {
+        color: '#9CA3AF',
+        fontSize: 14,
     },
     paymentCard: {
         backgroundColor: 'white',
         padding: 16,
-        borderRadius: 8,
-        marginBottom: 8,
-        elevation: 1,
+        borderRadius: 12,
+        marginBottom: 12,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 1,
+        shadowOpacity: 0.06,
+        shadowRadius: 3,
+    },
+    paymentHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 4,
     },
     paymentName: {
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
+        fontWeight: '700',
+        color: '#1F2937',
+        fontSize: 15,
     },
-    paymentStatus: {
-        fontSize: 14, // text-sm
-        color: '#6B7280', // gray-500
+    paymentSubject: {
+        fontSize: 13,
+        color: '#6B7280',
+        marginBottom: 12,
+    },
+    paymentDetails: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
+    paymentDetailItem: {
+        alignItems: 'center',
+    },
+    detailLabel: {
+        fontSize: 11,
+        color: '#9CA3AF',
+        textTransform: 'uppercase',
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    detailValue: {
+        fontSize: 14,
+        color: '#1F2937',
+        fontWeight: '500',
+    },
+    statusBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
     },
 });

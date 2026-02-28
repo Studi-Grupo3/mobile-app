@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
-import { ChevronLeft, ChevronRight, MapPin, Laptop, Phone, Star } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, MapPin, Laptop, Phone } from 'lucide-react-native';
 import { teacherService } from '../../../services/teacherService';
 import { formatPhoneNumber } from '../../../utils/phoneUtils';
 
@@ -22,11 +22,11 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
 
     // Mock professors used as fallback when API is unavailable
     const mockProfessors = [
-        { id: 2, name: 'Carlos Oliveira', subjects: ['MATHEMATICS', 'PHYSICS'], classType: 'ONLINE', cellphoneNumber: '11988885678', rating: 4.8, resumeTeacher: 'Licenciado em Matemática pela USP. 10 anos de experiência em aulas particulares.' },
-        { id: 4, name: 'Ana Beatriz', subjects: ['PORTUGUESE', 'HISTORY'], classType: 'ONLINE', cellphoneNumber: '11977774321', rating: 4.9, resumeTeacher: 'Mestra em Letras pela PUC-SP. Especialista em redação ENEM.' },
-        { id: 5, name: 'Dr. Roberto Nunes', subjects: ['PHYSICS', 'MATHEMATICS'], classType: 'IN_PERSON', cellphoneNumber: '11966663333', rating: 4.7, resumeTeacher: 'Doutor em Física pela UNICAMP. Aulas dinâmicas e práticas.' },
-        { id: 6, name: 'Fernanda Lima', subjects: ['CHEMISTRY', 'SCIENCE'], classType: 'ONLINE', cellphoneNumber: '11955552222', rating: 4.6, resumeTeacher: 'Bacharel em Química pela UNESP. Foco em vestibulares.' },
-        { id: 7, name: 'Paulo Henrique', subjects: ['HISTORY', 'GEOGRAPHY'], classType: 'ONLINE', cellphoneNumber: '11944441111', rating: 4.5, resumeTeacher: 'Historiador e geógrafo. Apaixonado por ensino.' },
+        { id: 2, name: 'Carlos Oliveira', subjects: ['MATHEMATICS', 'PHYSICS'], classType: 'ONLINE', cellphoneNumber: '11988885678', resumeTeacher: 'Licenciado em Matemática pela USP. 10 anos de experiência em aulas particulares.' },
+        { id: 4, name: 'Ana Beatriz', subjects: ['PORTUGUESE', 'HISTORY'], classType: 'ONLINE', cellphoneNumber: '11977774321', resumeTeacher: 'Mestra em Letras pela PUC-SP. Especialista em redação ENEM.' },
+        { id: 5, name: 'Dr. Roberto Nunes', subjects: ['PHYSICS', 'MATHEMATICS'], classType: 'IN_PERSON', cellphoneNumber: '11966663333', resumeTeacher: 'Doutor em Física pela UNICAMP. Aulas dinâmicas e práticas.' },
+        { id: 6, name: 'Fernanda Lima', subjects: ['CHEMISTRY', 'SCIENCE'], classType: 'ONLINE', cellphoneNumber: '11955552222', resumeTeacher: 'Bacharel em Química pela UNESP. Foco em vestibulares.' },
+        { id: 7, name: 'Paulo Henrique', subjects: ['HISTORY', 'GEOGRAPHY'], classType: 'ONLINE', cellphoneNumber: '11944441111', resumeTeacher: 'Historiador e geógrafo. Apaixonado por ensino.' },
     ];
 
     useEffect(() => {
@@ -73,7 +73,7 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
                 phone: prof.cellphoneNumber || prof.phone || null,
                 subjectsTranslated: translatedSubjects,
                 description: prof.resumeTeacher || 'Professor experiente',
-                rating: prof.rating || null,
+
             };
         });
 
@@ -174,14 +174,6 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
                         <View style={styles.infoRow}>
                             <Phone size={14} color="#64748B" />
                             <Text style={styles.infoText}>{formatPhoneNumber(currentProf.phone)}</Text>
-                        </View>
-                    )}
-
-                    {/* Rating */}
-                    {currentProf.rating && (
-                        <View style={styles.infoRow}>
-                            <Star size={14} color="#FECB0A" fill="#FECB0A" />
-                            <Text style={styles.infoText}>{currentProf.rating}</Text>
                         </View>
                     )}
 

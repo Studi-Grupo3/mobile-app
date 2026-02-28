@@ -185,16 +185,24 @@ export const mockTeacherDashService = {
     },
     getCharts: async () => {
         const data = await mockTeacherDashService.fetchDashboard();
+        // Build discipline distribution from teacher table
+        const disciplineMap = {};
+        (data.teacherTableValues || []).forEach(t => {
+            (t.subjects || []).forEach(s => {
+                disciplineMap[s] = (disciplineMap[s] || 0) + 1;
+            });
+        });
+        const disciplineData = Object.entries(disciplineMap).map(([label, value]) => ({ label, value }));
         return [
             {
                 type: 'bar',
-                title: 'Top 5 Professores (Horas Trabalhadas)',
+                title: 'Top 5 Professores (Horas)',
                 data: data.topTeachers || [],
             },
             {
                 type: 'pie',
                 title: 'Distribuição por Disciplina',
-                data: [],
+                data: disciplineData,
             },
         ];
     },

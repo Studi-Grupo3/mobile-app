@@ -9,7 +9,7 @@ import { showAlert } from "../../common/ShowAlert";
 import { teacherService } from "../../../services/teacherService";
 import { Picker } from '@react-native-picker/picker';
 
-export default function ContentTeacherRegistration({ current, formData, onChange, onSave, onAvailabilityChange }) {
+export function ContentTeacherRegistration({ current, formData, onChange, onSave, onAvailabilityChange }) {
     const [showModal, setShowModal] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [disponibilidade, setDisponibilidade] = useState({});

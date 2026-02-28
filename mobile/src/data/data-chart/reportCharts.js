@@ -17,7 +17,7 @@ export const financeCharts = [
     },
     {
       title: 'Distribuição de Despesas por Categoria',
-      type: 'doughnut',
+      type: 'pie',
       data: {
         labels: ['Salários', 'Aluguel', 'Marketing', 'Equipamentos', 'Outros'],
         datasets: [
@@ -47,7 +47,7 @@ export const financeCharts = [
     },
     {
       title: 'Distribuição de Alunos por Curso',
-      type: 'doughnut',
+      type: 'pie',
       data: {
         labels: ['Matemática', 'Inglês', 'Música', 'Ciências', 'História'],
         datasets: [
@@ -63,7 +63,7 @@ export const financeCharts = [
   export const classCharts = [
     {
       title: 'Aulas por Disciplina',
-      type: 'doughnut',
+      type: 'pie',
       data: {
         labels: ['Matemática', 'Inglês', 'Música', 'Ciências', 'História', 'Outros'],
         datasets: [

@@ -2,10 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TeacherInitialPage from '../pages/teacher/TeacherInitialPage';
 import TeacherClassesPage from '../pages/teacher/TeacherClassesPage';
-import TeacherRequests from '../pages/teacher/TeacherRequests';
 import TeacherGraph from '../pages/teacher/TeacherGraph';
 import ProfilePage from '../pages/common/ProfilePage';
-import { Home, BookOpen, Inbox, BarChart2, User } from 'lucide-react-native';
+import { Home, BookOpen, BarChart2, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -14,15 +13,19 @@ export function TeacherTabs() {
         <Tab.Navigator
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: '#3970B7',
-                tabBarInactiveTintColor: '#94A3B8',
+                tabBarActiveTintColor: '#FECB0A',
+                tabBarInactiveTintColor: '#8BADD4',
                 tabBarStyle: {
-                    backgroundColor: '#FFFFFF',
-                    borderTopWidth: 1,
-                    borderTopColor: '#E2E8F0',
-                    height: 60,
+                    backgroundColor: '#3970B7',
+                    borderTopWidth: 0,
+                    height: 62,
                     paddingBottom: 8,
                     paddingTop: 6,
+                    elevation: 12,
+                    shadowColor: '#1E3A5F',
+                    shadowOffset: { width: 0, height: -4 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
                 },
                 tabBarLabelStyle: {
                     fontSize: 11,
@@ -44,14 +47,6 @@ export function TeacherTabs() {
                 options={{
                     tabBarIcon: ({ color, size }) => <BookOpen color={color} size={size} />,
                     tabBarLabel: 'Aulas'
-                }}
-            />
-            <Tab.Screen
-                name="Requests"
-                component={TeacherRequests}
-                options={{
-                    tabBarIcon: ({ color, size }) => <Inbox color={color} size={size} />,
-                    tabBarLabel: 'Solicitações'
                 }}
             />
             <Tab.Screen

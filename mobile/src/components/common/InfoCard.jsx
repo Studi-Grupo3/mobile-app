@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function InfoCard({ title, value, icon, subtitle }) {
+export function InfoCard({ title, value, icon, subtitle }) {
     return (
         <View style={styles.container}>
             <View style={styles.header}>

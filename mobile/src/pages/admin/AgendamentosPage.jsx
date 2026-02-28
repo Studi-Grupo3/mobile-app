@@ -4,7 +4,8 @@ import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { mockAppointmentDashService as appointmentDashService } from '../../mocks/mockServices';
-import { Calendar, Clock, Timer, Hourglass } from 'lucide-react-native';
+import { Calendar, CheckCircle, Users, Hourglass } from 'lucide-react-native';
+import { translateSubject, translateAppointmentStatus } from '../../utils/tradutionUtils';
 
 export default function AgendamentosPage() {
     const [stats, setStats] = useState(null);
@@ -35,40 +36,30 @@ export default function AgendamentosPage() {
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.pageTitle}>Agendamentos</Text>
-
+        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             {stats && (
-                <View style={styles.statsContainer}>
-                    <View style={styles.statItem}>
-                        <StatCard
-                            title={stats.totalAppointments}
-                            subtitle="Total"
-                            icon={<Calendar size={20} color="#3970B7" />}
-                        />
-                    </View>
-                    <View style={styles.statItem}>
-                        <StatCard
-                            title={stats.confirmedCount}
-                            subtitle="Confirmados"
-                            icon={<Clock size={20} color="#3970B7" />}
-                        />
-                    </View>
-                    <View style={styles.statItem}>
-                        <StatCard
-                            title={stats.activeStudents}
-                            subtitle="Alunos Ativos"
-                            icon={<Timer size={20} color="#3970B7" />}
-                        />
-                    </View>
-                    <View style={styles.statItem}>
-                        <StatCard
-                            title={stats.averageDuration ? `${stats.averageDuration.toFixed(0)} min` : '-'}
-                            subtitle="Duração Média"
-                            icon={<Hourglass size={20} color="#3970B7" />}
-                        />
-                    </View>
-                </View>
+                <>
+                    <StatCard
+                        title={stats.totalAppointments}
+                        subtitle="Total de Agendamentos"
+                        icon={<Calendar size={20} color="#3970B7" />}
+                    />
+                    <StatCard
+                        title={stats.confirmedCount}
+                        subtitle="Confirmados"
+                        icon={<CheckCircle size={20} color="#22C55E" />}
+                    />
+                    <StatCard
+                        title={stats.activeStudents}
+                        subtitle="Alunos Ativos"
+                        icon={<Users size={20} color="#3970B7" />}
+                    />
+                    <StatCard
+                        title={stats.averageDuration ? `${stats.averageDuration.toFixed(0)} min` : '-'}
+                        subtitle="Duração Média"
+                        icon={<Hourglass size={20} color="#E8A317" />}
+                    />
+                </>
             )}
 
             <ChartSection charts={charts} />
@@ -78,8 +69,26 @@ export default function AgendamentosPage() {
                 data={tableData}
                 columns={[
                     { label: 'Aluno', accessor: 'studentName' },
-                    { label: 'Data', accessor: 'date' },
-                    { label: 'Status', accessor: 'status' },
+                    { label: 'Professor', accessor: 'teacherName' },
+                    { label: 'Matéria', accessor: 'subject', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>{translateSubject(row.subject)}</Text> },
+                    { label: 'Data', accessor: 'date', render: (row) => {
+                        const d = row.date ? row.date.split('-').reverse().join('/') : '-';
+                        return <Text style={{ color: '#1F2937', fontSize: 14 }}>{d} {row.time || ''}</Text>;
+                    }},
+                    { label: 'Duração', accessor: 'duration', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>{row.duration} min</Text> },
+                    { label: 'Status', accessor: 'status', render: (row) => {
+                        const translated = translateAppointmentStatus(row.status);
+                        const isGreen = row.status === 'COMPLETED';
+                        const isYellow = row.status === 'SCHEDULED';
+                        const isRed = row.status === 'CANCELLED';
+                        const bg = isGreen ? '#DCFCE7' : isYellow ? '#FEF9C3' : isRed ? '#FEE2E2' : '#F3F4F6';
+                        const txt = isGreen ? '#166534' : isYellow ? '#92400E' : isRed ? '#991B1B' : '#1F2937';
+                        return (
+                            <View style={{ backgroundColor: bg, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 }}>
+                                <Text style={{ color: txt, fontSize: 11, fontWeight: '700' }}>{translated}</Text>
+                            </View>
+                        );
+                    }},
                 ]}
             />
         </ScrollView>
@@ -89,28 +98,15 @@ export default function AgendamentosPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6', // gray-100
+        backgroundColor: '#F3F4F6',
+    },
+    content: {
         padding: 16,
+        paddingBottom: 32,
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    pageTitle: {
-        fontSize: 24, // text-2xl
-        fontWeight: 'bold',
-        color: '#1F2937', // gray-800
-        marginBottom: 24,
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        gap: 16,
-        marginBottom: 24,
-    },
-    statItem: {
-        width: '47%',
     },
 });
