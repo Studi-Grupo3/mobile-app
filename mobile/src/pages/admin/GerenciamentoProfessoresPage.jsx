@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, ActivityIndicator, Alert, TouchableOpacity, StyleSheet, Clipboard } from 'react-native';
+import { View, ScrollView, Text, ActivityIndicator, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { mockTeacherManagerService as teacherManagerService } from '../../mocks/mockServices';
@@ -47,8 +48,8 @@ export default function GerenciamentoProfessoresPage() {
         return pwd;
     };
 
-    const copyToClipboard = (text) => {
-        Clipboard.setString(text);
+    const copyToClipboard = async (text) => {
+        await Clipboard.setStringAsync(text);
         Alert.alert('Copiado!', 'Senha copiada para a área de transferência.');
     };
 

@@ -35,7 +35,7 @@ export const authService = {
     },
 
     logout: async () => {
-        await AsyncStorage.multiRemove(['authToken', 'userId', 'userRole', 'userEmail']);
+        await AsyncStorage.removeMany(['authToken', 'userId', 'userRole', 'userEmail']);
     },
 
     getToken: () => AsyncStorage.getItem('authToken'),

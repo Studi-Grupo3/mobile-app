@@ -28,7 +28,7 @@ const handleSchedule = async ({ selectedDate, selectedTime, navigation }) => {
             const response = await api.post('/appointments', appointmentDTO);
             console.log('Agendamento realizado:', response.data);
 
-            await AsyncStorage.multiRemove(['selectedProfessorId', 'classModel']);
+            await AsyncStorage.removeMany(['selectedProfessorId', 'classModel']);
 
             navigation.navigate('AlunoPayment');
         } catch (error) {
