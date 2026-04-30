@@ -3,9 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityInd
 import { BookOpen, Clock, Calendar, CreditCard, CheckCircle } from "lucide-react-native";
 import { appointmentCreateService } from "../../../services/appointmentCreateService";
 import { parseDurationToMinutes } from "../../../utils/date";
+import Constants from 'expo-constants';
 
-// ══════ BYPASS: set to true to skip real API & payment ══════
-const BYPASS_API = true;
+// ══════ MOCK MODE: reads from app.json extra.PAYMENT_MOCK ══════
+const PAYMENT_MOCK = Constants.expoConfig?.extra?.PAYMENT_MOCK === 'true' || Constants.expoConfig?.extra?.PAYMENT_MOCK === true;
 // ═════════════════════════════════════════════════════════════
 
 export default function Payment({ data, onUpdate, onNext, navigation }) {
@@ -72,33 +73,26 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
         setErrorMsg("");
         setLoading(true);
         try {
-            if (BYPASS_API) {
-                // Mock mode: simulate successful scheduling
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                Alert.alert(
-                    "✅ Agendamento Realizado!",
-                    `Aula de ${data.subject || 'matéria'} agendada com sucesso!\n\nData: ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : '—'}\nHorário: ${data.time || '—'}\nValor: R$ ${totalValueLocal.toFixed(2).replace(".", ",")}`,
-                    [{ text: "OK" }]
-                );
-            } else {
-                const lessonDuration = parseDurationToMinutes(data.duration || "");
-                const ratePerMinute = 1;
-                const totalValue = lessonDuration * ratePerMinute;
+            const lessonDuration = parseDurationToMinutes(data.duration || "");
+            const ratePerMinute = 1;
+            const totalValue = lessonDuration * ratePerMinute;
 
-                await appointmentCreateService.create({
-                    ...data,
-                    pagamento: {
-                        ...data.pagamento,
-                        lessonDuration,
-                        totalValue,
-                        method: paymentMethod,
-                    },
-                });
+            // Always create the appointment via backend
+            await appointmentCreateService.create({
+                ...data,
+                pagamento: {
+                    ...data.pagamento,
+                    lessonDuration,
+                    totalValue,
+                    method: paymentMethod,
+                },
+            });
 
-                Alert.alert("Sucesso", "Agendamento realizado!", [
-                    { text: "OK" }
-                ]);
-            }
+            Alert.alert(
+                "✅ Agendamento Realizado!",
+                `Aula de ${data.subject || 'matéria'} agendada com sucesso!\n\nData: ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : '—'}\nHorário: ${data.time || '—'}\nValor: R$ ${totalValue.toFixed(2).replace(".", ",")}${PAYMENT_MOCK ? '\n\n(Modo demonstração - pagamento simulado)' : ''}`,
+                [{ text: "OK" }]
+            );
         } catch (err) {
             console.error(err);
             setErrorMsg("Erro ao agendar. Tente novamente.");
