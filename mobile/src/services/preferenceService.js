@@ -7,7 +7,7 @@ const create = (amount, payerEmail) => {
     if (isMock) return createPreferenceMock(amount, payerEmail);
 
     return api
-        .post('/payments/preference', { amount, payer_email: payerEmail })
+        .post('/preferences', { amount, payer_email: payerEmail })
         .then((res) => res.data);
 };
 

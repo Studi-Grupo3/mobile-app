@@ -60,23 +60,4 @@ export const appointmentCreateService = {
         const response = await api.post('/appointments', payload);
         return response.data;
     },
-
-    uploadFiles: async (appointmentId, materials = []) => {
-        const formData = new FormData();
-        formData.append('appointmentId', appointmentId);
-
-        materials.forEach(mat => {
-            formData.append('materials', {
-                uri: mat.uri,
-                name: mat.name,
-                type: mat.type || 'application/octet-stream',
-            });
-        });
-
-        console.log(`Enviando ${materials.length} arquivo(s) para agendamento ${appointmentId}`);
-        const response = await api.post('/appointments/files', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    }
 };
