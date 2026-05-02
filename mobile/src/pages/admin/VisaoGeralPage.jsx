@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ScrollView, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { mockOverviewDashService } from '../../mocks/mockServices';
-import { DollarSign, Users, Clock, CalendarCheck } from 'lucide-react-native';
+import { DollarSign, Users, Clock, CalendarCheck, Brain } from 'lucide-react-native';
 import { translateSubject, translatePaymentStatus } from '../../utils/tradutionUtils';
 
 export default function VisaoGeralPage() {
@@ -58,11 +58,20 @@ export default function VisaoGeralPage() {
                 subtitle="Valor Pendente"
                 icon={<Clock size={20} color="#E8A317" />}
             />
+            
+
             <StatCard
                 title={stats.totalAppointments}
                 subtitle="Agendamentos"
                 icon={<CalendarCheck size={20} color="#3970B7" />}
             />
+            
+            <TouchableOpacity style={styles.aiInsightsButton}>
+                <View style={styles.aiInsightsContent}>
+                    <Brain size={20} color="#FFFFFF" />
+                    <Text style={styles.aiInsightsText}>Insights com IA</Text>
+                </View>
+            </TouchableOpacity>
 
             <ChartSection charts={charts} />
 
@@ -102,5 +111,28 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    aiInsightsButton: {
+        backgroundColor: '#3970B7',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        elevation: 2,
+        marginBottom: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    aiInsightsContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+    aiInsightsText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
