@@ -41,12 +41,6 @@ def _fetch_data() -> dict:
     conn = _get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # KPIs gerais
-        cursor.execute(
-            "SELECT metric_name, metric_value, metric_unit FROM dashboard_kpis"
-        )
-        kpis = cursor.fetchall()
-
         # Resumo agregado por matéria (para decisões de contratação)
         cursor.execute("""
             SELECT
@@ -102,7 +96,6 @@ def _fetch_data() -> dict:
         top_schools = cursor.fetchall()
 
         return {
-            "kpis": kpis,
             "subject_summary": subject_summary,
             "cycle_summary": cycle_summary,
             "worst_segments": worst_segments,
@@ -122,14 +115,9 @@ def _build_context(data: dict) -> str:
     lines = [
         f"Data: {now.strftime('%d/%m/%Y')} — Mês de referência: {now.strftime('%B de %Y')}",
         "",
-        "=== INDICADORES GERAIS ===",
     ]
 
-    for kpi in data["kpis"]:
-        unit = kpi.get("metric_unit") or ""
-        lines.append(f"• {kpi['metric_name']}: {kpi['metric_value']} {unit}".rstrip())
-
-    lines += ["", "=== RESUMO POR MATÉRIA ==="]
+    lines += ["=== RESUMO POR MATÉRIA ==="]
     for row in data["subject_summary"]:
         lines.append(
             f"• {row['subject_name']}: média={row['overall_avg']}, "
