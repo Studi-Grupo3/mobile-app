@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\insights-service\\\\\" -Force)"
+    ]
+  }
+}

@@ -31,7 +31,8 @@
       "expo-document-picker"
     ],
     "extra": {
-      "API_URL": "http://localhost:8080/api"
+      "API_URL": "http://localhost:8080/api",
+      "INSIGHTS_URL": "http://localhost:5001"
     }
   }
 }

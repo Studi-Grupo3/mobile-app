@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(powershell -Command \"Expand-Archive -Path 'c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\mobile\\\\etl-dados-estudantes.zip' -DestinationPath 'c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\mobile\\\\etl-temp' -Force\")",
+      "Bash(powershell -Command \"Get-ChildItem -Recurse 'c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\mobile\\\\etl-temp' | Select-Object -ExpandProperty FullName\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\janaz\\OneDrive - SPTech School\\studi\\mobile-app"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/janaz/**)",
+      "Bash(dir /s /b \"c:\\\\Users\\\\janaz\\\\etl-dados-estudantes*\")",
+      "Bash(powershell -Command \"Expand-Archive -Path 'etl-dados-estudantes.zip' -DestinationPath 'etl-temp' -Force\")"
+    ]
+  }
+}
