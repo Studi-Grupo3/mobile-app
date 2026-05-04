@@ -34,6 +34,7 @@ def _get_connection():
         password=os.getenv("MYSQL_PASSWORD", ""),
         charset="utf8mb4",
         connection_timeout=10,
+        use_pure=True,
     )
 
 
@@ -226,22 +227,28 @@ async def generate_insights():
                 {
                     "role": "system",
                     "content": (
-                        "Você é um consultor especialista em gestão de uma escola de reforço escolar no Brasil. "
-                        "Com base em dados de proficiência de escolas públicas da rede, você identifica "
-                        "oportunidades de negócio e orienta sobre contratação de professores e estratégia mensal. "
-                        "Seja direto, prático e use formatação clara com seções e marcadores em português."
+                        "Você é um consultor especialista em gestão de uma escola de reforço escolar de pequeno porte no Brasil. "
+                        "A escola atende no máximo 200 alunos simultaneamente e conta com uma equipe enxuta de professores — "
+                        "tipicamente entre 3 e 8 docentes no total, cada um podendo cobrir mais de uma matéria ou série. "
+                        "Com base em dados de proficiência de escolas públicas da região, você identifica quais matérias e "
+                        "séries têm maior demanda reprimida e orienta o gestor sobre priorização de vagas, perfil de "
+                        "professores a contratar e estratégia mensal realista para uma operação de pequena escala. "
+                        "Seja direto, prático e use formatação clara com seções e marcadores em português. "
+                        "Nunca sugira contratar mais professores do que o necessário para 200 alunos."
                     ),
                 },
                 {
                     "role": "user",
                     "content": (
                         "Com base nos dados de proficiência escolar abaixo, gere insights estratégicos "
-                        "para o mês atual. Responda em português do Brasil com exatamente estas seções:\n\n"
+                        "para o mês atual considerando que somos uma escola de reforço de pequeno porte "
+                        "(máximo 200 alunos, equipe de 3 a 8 professores). "
+                        "Responda em português do Brasil com exatamente estas seções:\n\n"
                         "1. 📊 Visão Geral do Cenário\n"
-                        "2. 👩‍🏫 Professores a Contratar (total estimado e quantidade por matéria)\n"
-                        "3. 📚 Matérias e Séries Prioritárias\n"
-                        "4. 🏫 Regiões com Maior Demanda\n"
-                        "5. 🎯 Recomendações Estratégicas para o Mês\n\n"
+                        "2. 👩‍🏫 Professores a Contratar (máximo 2 a 3 novos professores; indique perfil e matérias que cada um deve cobrir)\n"
+                        "3. 📚 Matérias e Séries Prioritárias (foque nas 2 ou 3 mais críticas para nossa capacidade)\n"
+                        "4. 🏫 Bairros ou Regiões com Maior Demanda (para direcionar divulgação)\n"
+                        "5. 🎯 Recomendações Estratégicas para o Mês (ações concretas e viáveis para uma escola pequena)\n\n"
                         f"DADOS:\n{context}"
                     ),
                 },
