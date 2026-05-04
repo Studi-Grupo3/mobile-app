@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\insights-service\\\\\" -Force)"
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\insights-service\\\\\" -Force)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\janaz\\\\OneDrive - SPTech School\\\\studi\\\\mobile-app\\\\insights-service\\\\__pycache__\\\\app.cpython-314.pyc\" -Force)"
     ]
   }
 }
