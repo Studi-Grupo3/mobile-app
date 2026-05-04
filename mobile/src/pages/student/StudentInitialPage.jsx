@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ArrowRight } from 'lucide-react-native';
+import { studentService } from '../../services/studentService';
+import { authService } from '../../services/authService';
 
 const CardPanelItem = ({ title, description, buttonLink, colorStyles, route }) => {
     const navigation = useNavigation();
     return (
         <TouchableOpacity
-            onPress={() => navigation.navigate(route)}
+            onPress={() => {
+                if (route === 'CompleteStudentRegistration') {
+                    navigation.navigate('Profile', { screen: 'CompleteStudentRegistration' });
+                } else {
+                    navigation.navigate(route);
+                }
+            }}
             style={[styles.cardItem, { backgroundColor: colorStyles.bg }]}
         >
             <View>
@@ -31,9 +39,33 @@ export default function StudentInitialPage() {
     const insets = useSafeAreaInsets();
     const [isCadastroCompleto, setIsCadastroCompleto] = useState(false);
 
-    useEffect(() => {
-        setTimeout(() => setIsCadastroCompleto(true), 500);
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            (async () => {
+                try {
+                    const studentId = await authService.getUserId();
+                    if (!studentId) return;
+                    const data = await studentService.getById(studentId);
+                    const fields = [
+                        data.name,
+                        data.email,
+                        data.dateBirth,
+                        data.schoolGrade,
+                        data.cellphoneNumber,
+                        data.schoolName,
+                        data.responsible?.responsibleName,
+                        data.responsible?.kinship,
+                        data.responsible?.responsibleCpf,
+                        data.responsible?.responsibleCellphoneNumber,
+                    ];
+                    const filled = fields.filter(Boolean).length;
+                    setIsCadastroCompleto(filled === fields.length);
+                } catch {
+                    setIsCadastroCompleto(false);
+                }
+            })();
+        }, [])
+    );
 
     const items = [
         {
@@ -57,11 +89,11 @@ export default function StudentInitialPage() {
             route: "Appointments",
         },
         {
-            title: "Calendário",
-            description: "Visualize suas aulas em um calendário mensal.",
-            buttonLink: "Ver calendário →",
-            colorStyles: { bg: "#FEFCE8", textTitle: "#A16207", buttonText: "#A16207", arrowColor: "#A16207" }, // yellow-50, yellow-700
-            route: "Appointments", // Could pass params { initialTab: 'Calendar' }
+            title: "Agendar Aula",
+            description: "Agende uma nova aula com um professor.",
+            buttonLink: "Agendar agora →",
+            colorStyles: { bg: "#FEFCE8", textTitle: "#A16207", buttonText: "#A16207", arrowColor: "#A16207" },
+            route: "AgendarTab",
         },
     ];
 

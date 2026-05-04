@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatCard } from '../../components/admin/StatCard';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
-import { mockPaymentDashService as paymentDashService } from '../../mocks/mockServices';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { paymentDashService } from '../../services/dashboard/paymentDashService';
 import { DollarSign, CreditCard, Wallet, TrendingUp } from 'lucide-react-native';
-import { translateSubject, translatePaymentStatus } from '../../utils/tradutionUtils';
+import { translatePaymentStatus } from '../../utils/tradutionUtils';
+import { SubjectBadge } from '../../components/admin/SubjectBadge';
 
 export default function PagamentosPage() {
     const [stats, setStats] = useState({
@@ -17,12 +19,20 @@ export default function PagamentosPage() {
     const [loading, setLoading] = useState(true);
     const [onlyPending, setOnlyPending] = useState(false);
 
+    // Alert modal state
+    const [alertConfig, setAlertConfig] = useState({ visible: false, type: 'info', title: '', message: '', buttons: null });
+    const showAlert = (type, title, message, buttons) => setAlertConfig({ visible: true, type, title, message, buttons });
+    const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
     useEffect(() => {
         async function fetchData() {
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
             try {
                 const [statsData, recentData] = await Promise.all([
-                    paymentDashService.getStats(2, 2025),
-                    paymentDashService.getRecent(2, 2025)
+                    paymentDashService.getStats(month, year),
+                    paymentDashService.getRecent(month, year)
                 ]);
                 setStats(statsData);
                 setPayments(recentData);
@@ -36,33 +46,37 @@ export default function PagamentosPage() {
     }, []);
 
     const doToggle = async (item) => {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
         try {
-            await paymentDashService.toggleStatus(item.id, 2, 2025);
+            await paymentDashService.toggleStatus(item.id, month, year);
             const [statsData, recentData] = await Promise.all([
-                paymentDashService.getStats(2, 2025),
-                paymentDashService.getRecent(2, 2025)
+                paymentDashService.getStats(month, year),
+                paymentDashService.getRecent(month, year)
             ]);
             setStats(statsData);
             setPayments(recentData);
         } catch (e) {
-            Alert.alert("Erro", "Falha ao atualizar status");
+            showAlert('error', 'Erro', 'Falha ao atualizar status do pagamento.');
         }
     };
 
     const toggleStatus = (item) => {
-        const isPaid = item.status === 'Pago' || item.status === 'PAID';
+        const rawStatus = (item.status || '').toUpperCase();
+        const isPaid = rawStatus === 'PAID' || rawStatus === 'PAGO';
         const action = isPaid ? 'Pendente' : 'Pago';
-        Alert.alert(
-            'Confirmar alteração',
-            `Deseja marcar o pagamento de ${item.name} como "${action}"?`,
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Confirmar', onPress: () => doToggle(item) },
-            ]
-        );
+        showAlert('warning', 'Confirmar alteração', `Deseja marcar o pagamento de ${item.name} como "${action}"?`, [
+            { text: 'Cancelar', style: 'cancel', onPress: hideAlert },
+            { text: 'Confirmar', onPress: () => { hideAlert(); doToggle(item); } },
+        ]);
     };
 
-    const filtered = payments.filter(p => !onlyPending || p.status === 'Pendente' || p.status === 'PENDING');
+    const filtered = payments.filter(p => {
+        if (!onlyPending) return true;
+        const s = (p.status || '').toUpperCase();
+        return s === 'PENDING' || s === 'PENDENTE';
+    });
 
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 
@@ -70,17 +84,17 @@ export default function PagamentosPage() {
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <StatCard
                 title={`R$ ${Number(stats.totalAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                subtitle="Total"
+                subtitle="Total em Pagamentos"
                 icon={<DollarSign size={20} color="#3970B7" />}
             />
             <StatCard
                 title={`R$ ${Number(stats.realizedAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                subtitle="Realizado"
+                subtitle="Total Pago no Mês"
                 icon={<CreditCard size={20} color="#22C55E" />}
             />
             <StatCard
                 title={`R$ ${Number(stats.pendingAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                subtitle="Pendente"
+                subtitle="Valor Pendente"
                 icon={<Wallet size={20} color="#E8A317" />}
             />
             <StatCard
@@ -101,10 +115,11 @@ export default function PagamentosPage() {
             )}
 
             {filtered.map(item => {
-                const isPaid = item.status === 'Pago' || item.status === 'PAID';
+                const rawStatus = (item.status || '').toUpperCase();
+                const isPaid = rawStatus === 'PAID' || rawStatus === 'PAGO';
                 const statusLabel = translatePaymentStatus(item.status);
                 return (
-                    <View key={item.id} style={styles.paymentCard}>
+                    <View key={`${item.id}-${item.status}`} style={styles.paymentCard}>
                         <View style={styles.paymentHeader}>
                             <Text style={styles.paymentName}>{item.name}</Text>
                             <ToggleSwitch
@@ -112,27 +127,36 @@ export default function PagamentosPage() {
                                 onChange={() => toggleStatus(item)}
                             />
                         </View>
-                        <Text style={styles.paymentSubject}>{translateSubject(item.subject)}</Text>
+                        <View style={styles.paymentSubjectRow}><SubjectBadge subjects={item.subject} /></View>
                         <View style={styles.paymentDetails}>
                             <View style={styles.paymentDetailItem}>
-                                <Text style={styles.detailLabel}>Valor/Hora</Text>
+                                <Text style={styles.detailLabel}>VALOR/HORA</Text>
                                 <Text style={styles.detailValue}>R$ {Number(item.valuePerHour).toFixed(2)}</Text>
                             </View>
                             <View style={styles.paymentDetailItem}>
-                                <Text style={styles.detailLabel}>Horas</Text>
+                                <Text style={styles.detailLabel}>HORAS</Text>
                                 <Text style={styles.detailValue}>{item.hours}h</Text>
                             </View>
                             <View style={styles.paymentDetailItem}>
-                                <Text style={styles.detailLabel}>Total</Text>
+                                <Text style={styles.detailLabel}>TOTAL</Text>
                                 <Text style={[styles.detailValue, { fontWeight: '700' }]}>R$ {Number(item.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</Text>
                             </View>
                         </View>
                         <View style={[styles.statusBadge, { backgroundColor: isPaid ? '#DCFCE7' : '#FEF9C3' }]}>
-                            <Text style={{ color: isPaid ? '#166534' : '#92400E', fontSize: 11, fontWeight: '700' }}>{statusLabel}</Text>
+                            <Text style={{ color: isPaid ? '#166534' : '#92400E', fontSize: 12, fontWeight: '700' }}>{statusLabel}</Text>
                         </View>
                     </View>
                 );
             })}
+
+            <AlertModal
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+                buttons={alertConfig.buttons}
+            />
         </ScrollView>
     );
 }
@@ -194,9 +218,7 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         fontSize: 15,
     },
-    paymentSubject: {
-        fontSize: 13,
-        color: '#6B7280',
+    paymentSubjectRow: {
         marginBottom: 12,
     },
     paymentDetails: {

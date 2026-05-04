@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
 import { api } from './provider/api';
+import { showAlert } from '../components/common/ShowAlert';
 
 const handleSchedule = async ({ selectedDate, selectedTime, navigation }) => {
     if (selectedDate && selectedTime) {
@@ -11,7 +11,7 @@ const handleSchedule = async ({ selectedDate, selectedTime, navigation }) => {
             const classModel = await AsyncStorage.getItem('classModel');
 
             if (!professorId || !classModel) {
-                Alert.alert('Atenção', 'Professor ou modelo de aula não selecionados.');
+                showAlert({ title: 'Atenção', text: 'Professor ou modelo de aula não selecionados.', icon: 'error' });
                 return;
             }
 
@@ -30,13 +30,13 @@ const handleSchedule = async ({ selectedDate, selectedTime, navigation }) => {
 
             await AsyncStorage.removeMany(['selectedProfessorId', 'classModel']);
 
-            navigation.navigate('AlunoPayment');
+            navigation.navigate('ConfirmedPayment', { appointmentId: response.data?.id });
         } catch (error) {
             console.error('Erro ao agendar:', error);
-            Alert.alert('Erro', 'Erro ao agendar aula. Tente novamente.');
+            showAlert({ title: 'Erro', text: 'Erro ao agendar aula. Tente novamente.', icon: 'error' });
         }
     } else {
-        Alert.alert('Atenção', 'Selecione data e horário antes de agendar.');
+        showAlert({ title: 'Atenção', text: 'Selecione data e horário antes de agendar.', icon: 'error' });
     }
 };
 

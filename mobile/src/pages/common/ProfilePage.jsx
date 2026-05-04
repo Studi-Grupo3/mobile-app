@@ -1,14 +1,19 @@
 import React, { useContext, useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    Image, Alert, Dimensions
+    Image, Dimensions
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
     User, LogOut, ChevronRight, Edit3
 } from 'lucide-react-native';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 import { AuthContext } from '../../context/authContext';
+import { studentService } from '../../services/studentService';
+import { teacherService } from '../../services/teacherService';
+import { getStudentImage, getProfessorImage } from '../../mocks/mockImages';
 
 const { width } = Dimensions.get('window');
 
@@ -17,59 +22,78 @@ export default function ProfilePage() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const [profileData, setProfileData] = useState(null);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const isStudent = user?.role === 'STUDENT';
     const isTeacher = user?.role === 'TEACHER';
     const isAdmin = user?.role === 'ADMIN';
 
     useEffect(() => {
-        // Mock profile data based on role
-        if (isStudent) {
-            setProfileData({
-                name: 'Estudante Teste',
-                email: 'aluno@studi.com',
-                avatar: null,
-                role: 'Aluno',
-                memberSince: 'Jan 2025',
-                completedClasses: 12,
-                registrationComplete: false,
-            });
-        } else if (isTeacher) {
-            setProfileData({
-                name: 'Professor Teste',
-                email: 'professor@studi.com',
-                avatar: null,
-                role: 'Professor',
-                memberSince: 'Mar 2024',
-                totalClasses: 87,
-                registrationComplete: false,
-            });
-        } else {
-            setProfileData({
-                name: 'Administrador',
-                email: 'admin@studi.com',
-                avatar: null,
-                role: 'Administrador',
-                memberSince: 'Jan 2024',
-            });
-        }
+        const fetchProfile = async () => {
+            try {
+                if (isStudent && user?.userId) {
+                    const data = await studentService.getById(user.userId);
+                    setProfileData({
+                        name: data.name || 'Aluno',
+                        email: data.email || '',
+                        avatar: data.studentImageUrl || getStudentImage(data.name),
+                        role: 'Aluno',
+                        memberSince: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }) : '',
+                        completedClasses: data.completedClasses || 0,
+                        registrationComplete: !!(data.dateBirth && data.cellphoneNumber),
+                    });
+                } else if (isTeacher && user?.userId) {
+                    const data = await teacherService.getById(user.userId);
+                    setProfileData({
+                        name: data.name || 'Professor',
+                        email: data.email || '',
+                        avatar: data.teacherImageUrl || getProfessorImage(data.name),
+                        role: 'Professor',
+                        memberSince: data.createdAt ? new Date(data.createdAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }) : '',
+                        totalClasses: data.totalClasses || 0,
+                        registrationComplete: !!(data.academicFormation && data.yearsExperience),
+                    });
+                } else {
+                    setProfileData({
+                        name: 'Administrador',
+                        email: user?.email || 'admin@exemplo.com',
+                        avatar: null,
+                        role: 'Administrador',
+                        memberSince: '',
+                    });
+                }
+            } catch (err) {
+                console.warn('ProfilePage: erro ao buscar perfil, usando dados básicos', err.message);
+                const fallbackName = user?.name || user?.email || 'Usuário';
+                const fallbackImage = isStudent
+                    ? getStudentImage(fallbackName)
+                    : isTeacher
+                    ? getProfessorImage(fallbackName)
+                    : null;
+                setProfileData({
+                    name: fallbackName,
+                    email: user?.email || '',
+                    avatar: fallbackImage,
+                    role: isStudent ? 'Aluno' : isTeacher ? 'Professor' : 'Administrador',
+                    memberSince: '',
+                });
+            }
+        };
+        fetchProfile();
     }, [user]);
 
     const handleLogout = () => {
-        Alert.alert(
-            'Sair da conta',
-            'Tem certeza que deseja sair?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                    text: 'Sair',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await logout();
-                    },
+        showAlert('warning', 'Sair da conta', 'Tem certeza que deseja sair?', [
+            { text: 'Cancelar', style: 'cancel', onPress: hideAlert },
+            {
+                text: 'Sair',
+                style: 'destructive',
+                onPress: async () => {
+                    hideAlert();
+                    await logout();
                 },
-            ]
-        );
+            },
+        ]);
     };
 
     const handleCompleteRegistration = () => {
@@ -126,7 +150,10 @@ export default function ProfilePage() {
                 <View style={styles.profileCard}>
                     <View style={styles.avatarContainer}>
                         {profileData?.avatar ? (
-                            <Image source={{ uri: profileData.avatar }} style={styles.avatar} />
+                            <Image
+                                source={typeof profileData.avatar === 'string' ? { uri: profileData.avatar } : profileData.avatar}
+                                style={styles.avatar}
+                            />
                         ) : (
                             <View style={[styles.avatarPlaceholder, { backgroundColor: getRoleColor() }]}>
                                 <User size={36} color="#FFF" />
@@ -139,41 +166,7 @@ export default function ProfilePage() {
                     <Text style={styles.profileName}>{profileData?.name || 'Carregando...'}</Text>
                     <Text style={styles.profileEmail}>{profileData?.email || ''}</Text>
 
-                    {/* Stats Row */}
-                    <View style={styles.statsRow}>
-                        {isStudent && (
-                            <>
-                                <View style={styles.statItem}>
-                                    <Text style={styles.statValue}>{profileData?.completedClasses || 0}</Text>
-                                    <Text style={styles.statLabel}>Aulas</Text>
-                                </View>
-                                <View style={styles.statDivider} />
-                                <View style={styles.statItem}>
-                                    <Text style={styles.statValue}>{profileData?.memberSince}</Text>
-                                    <Text style={styles.statLabel}>Membro desde</Text>
-                                </View>
-                            </>
-                        )}
-                        {isTeacher && (
-                            <>
-                                <View style={styles.statItem}>
-                                    <Text style={styles.statValue}>{profileData?.totalClasses || 0}</Text>
-                                    <Text style={styles.statLabel}>Aulas</Text>
-                                </View>
-                                <View style={styles.statDivider} />
-                                <View style={styles.statItem}>
-                                    <Text style={styles.statValue}>{profileData?.memberSince}</Text>
-                                    <Text style={styles.statLabel}>Desde</Text>
-                                </View>
-                            </>
-                        )}
-                        {isAdmin && (
-                            <View style={styles.statItem}>
-                                <Text style={styles.statValue}>{profileData?.memberSince}</Text>
-                                <Text style={styles.statLabel}>Membro desde</Text>
-                            </View>
-                        )}
-                    </View>
+
                 </View>
 
                 {/* Menu Sections */}
@@ -225,6 +218,7 @@ export default function ProfilePage() {
 
                 <Text style={styles.version}>Studi App v1.0.0</Text>
             </ScrollView>
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }

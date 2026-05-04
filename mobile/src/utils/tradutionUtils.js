@@ -27,8 +27,22 @@ export const weekdayNamesPt = {
     SATURDAY: 'Sábado',
 };
 
+export const weekdayShortPt = {
+    SUNDAY: 'Dom',
+    MONDAY: 'Seg',
+    TUESDAY: 'Ter',
+    WEDNESDAY: 'Qua',
+    THURSDAY: 'Qui',
+    FRIDAY: 'Sex',
+    SATURDAY: 'Sáb',
+};
+
 export function translateWeekday(dayEn) {
     return weekdayNamesPt[dayEn.toUpperCase()] || dayEn;
+}
+
+export function translateWeekdayShort(dayEn) {
+    return weekdayShortPt[dayEn.toUpperCase()] || dayEn;
 }
 
 export const paymentStatusPt = {

@@ -130,7 +130,7 @@ const ProfessorCarouselChoose = () => {
                             <View style={styles.actionContainer}>
                                 <TouchableOpacity
                                     onPress={async () => {
-                                        navigation.navigate("StudentSchedule", { selectedProfessorId: prof.id });
+                                        navigation.navigate("AppointmentCreate", { selectedProfessorId: prof.id });
                                     }}
                                     style={styles.scheduleButton}
                                 >

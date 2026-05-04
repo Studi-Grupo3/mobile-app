@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { SaveButton } from './SaveButton';
+import { AlertModal } from '../../ui/AlertModal';
+import { useAlert } from '../../../hooks/useAlert';
 import * as ImagePicker from 'expo-image-picker';
 
 export function GeneralSettings() {
@@ -12,6 +14,7 @@ export function GeneralSettings() {
         address: '',
         logo: null
     });
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const handleChange = (name, value) => {
         setForm(prev => ({
@@ -35,7 +38,7 @@ export function GeneralSettings() {
 
     const salvar = () => {
         console.log('Dados da empresa:', form);
-        Alert.alert("Sucesso", "Informações salvas com sucesso (Simulação)");
+        showAlert('success', 'Sucesso', 'Informações salvas com sucesso.');
     };
 
     return (
@@ -116,6 +119,8 @@ export function GeneralSettings() {
             <View style={styles.buttonContainer}>
                 <SaveButton onClick={salvar} label="Salvar Alterações" />
             </View>
+
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }

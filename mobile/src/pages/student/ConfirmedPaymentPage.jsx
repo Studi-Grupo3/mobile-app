@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { CheckCircle } from 'lucide-react-native';
 import { translateSubject } from '../../utils/tradutionUtils';
+import { appointmentService } from '../../services/appointmentService';
 
 const InfoRow = ({ label, value, striped }) => (
     <View style={[styles.infoRow, striped && styles.infoRowStriped]}>
@@ -21,16 +22,33 @@ export default function ConfirmedPaymentPage() {
     const [appointment, setAppointment] = useState(null);
 
     useEffect(() => {
-        setTimeout(() => {
-            setAppointment({
-                id: appointmentId,
-                location: "Online",
-                lessonDuration: 60,
-                dateTime: new Date().toISOString(),
-                teacher: { name: "Professor Teste", subject: "Mathematics" }
-            });
-            setLoading(false);
-        }, 1000);
+        const fetchAppointment = async () => {
+            try {
+                if (appointmentId) {
+                    const data = await appointmentService.getById(appointmentId);
+                    setAppointment(data);
+                } else {
+                    // Fallback if no appointmentId was passed (direct navigation from wizard)
+                    setAppointment(route.params?.appointment || {
+                        location: "Online",
+                        lessonDuration: 60,
+                        dateTime: new Date().toISOString(),
+                        teacher: { name: "Professor", subject: "MATHEMATICS" }
+                    });
+                }
+            } catch (err) {
+                console.warn('ConfirmedPaymentPage: erro ao buscar appointment', err.message);
+                setAppointment({
+                    location: "Online",
+                    lessonDuration: 60,
+                    dateTime: new Date().toISOString(),
+                    teacher: { name: "Professor", subject: "MATHEMATICS" }
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAppointment();
     }, [appointmentId]);
 
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;

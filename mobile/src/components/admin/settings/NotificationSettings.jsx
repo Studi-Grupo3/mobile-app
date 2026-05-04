@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Switch, Alert, StyleSheet } from 'react-native';
+import { View, Text, Switch, StyleSheet } from 'react-native';
 import { SaveButton } from './SaveButton';
+import { AlertModal } from '../../ui/AlertModal';
+import { useAlert } from '../../../hooks/useAlert';
 import { adminSettingsService } from '../../../services/dashboard/adminSettingsService';
 
 const labels = {
@@ -15,6 +17,7 @@ export function NotificationSettings() {
         notifyAppointments: false,
         notifyCancellations: false
     });
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     useEffect(() => {
         adminSettingsService.get()
@@ -34,10 +37,10 @@ export function NotificationSettings() {
     const salvar = async () => {
         try {
             await adminSettingsService.patch(notif);
-            Alert.alert('Sucesso', 'Notificações salvas com sucesso!');
+            showAlert('success', 'Sucesso', 'Notificações salvas com sucesso!');
         } catch (err) {
             console.error('Erro ao salvar notificações:', err);
-            Alert.alert('Erro', 'Erro ao salvar configurações.');
+            showAlert('error', 'Erro', 'Erro ao salvar configurações.');
         }
     };
 
@@ -66,6 +69,8 @@ export function NotificationSettings() {
             <View style={styles.buttonContainer}>
                 <SaveButton onClick={salvar} label="Salvar Alterações" />
             </View>
+
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }

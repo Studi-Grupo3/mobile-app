@@ -42,6 +42,8 @@ export default function LoginPage() {
                 token: response.token,
                 userId: response.id || response.userId,
                 role: response.role,
+                name: response.name || response.username || '',
+                email: response.email || '',
             });
         } catch (err) {
             console.error("Erro login:", err);
@@ -55,8 +57,8 @@ export default function LoginPage() {
         }
     };
 
-    const quickLogin = (email) => {
-        setCredentials({ email, password: '123456' });
+    const quickLogin = (email, password) => {
+        setCredentials({ email, password });
     };
 
     return (
@@ -145,15 +147,15 @@ export default function LoginPage() {
 
                         {/* Quick mock access */}
                         <View style={styles.mockSection}>
-                            <Text style={styles.mockTitle}>Acesso rápido (teste)</Text>
+                            <Text style={styles.mockTitle}>Acesso rápido (demo)</Text>
                             <View style={styles.mockRow}>
-                                <TouchableOpacity style={styles.mockBtn} onPress={() => quickLogin('aluno@studi.com')}>
+                                <TouchableOpacity style={styles.mockBtn} onPress={() => quickLogin('matheus@gmail.com', 'senha123')}>
                                     <Text style={styles.mockBtnText}>Aluno</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.mockBtn} onPress={() => quickLogin('professor@studi.com')}>
+                                <TouchableOpacity style={[styles.mockBtn, { backgroundColor: '#8B5CF6' }]} onPress={() => quickLogin('carlos.prof@gmail.com', 'senha123')}>
                                     <Text style={styles.mockBtnText}>Professor</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.mockBtn} onPress={() => quickLogin('admin@studi.com')}>
+                                <TouchableOpacity style={[styles.mockBtn, { backgroundColor: '#EF4444' }]} onPress={() => quickLogin('admin@exemplo.com', 'password')}>
                                     <Text style={styles.mockBtnText}>Admin</Text>
                                 </TouchableOpacity>
                             </View>

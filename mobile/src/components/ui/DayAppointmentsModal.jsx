@@ -53,7 +53,7 @@ export function DayAppointmentsModal({
                                         professorImageUrl={app.professorImageUrl}
                                         date={app.displayDate}
                                         time={app.displayTime}
-                                        duration={`${app.duration}min`}
+                                        duration={`${app.duration} min`}
                                         location={app.location}
                                         status={app.status}
                                         online={app.online}

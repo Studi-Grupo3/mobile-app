@@ -22,8 +22,7 @@ const Footer = () => {
     };
 
     const goToSection = (section) => {
-        // Placeholder nav
-        navigation.navigate('Home');
+        navigation.navigate('Dashboard');
     };
 
     return (

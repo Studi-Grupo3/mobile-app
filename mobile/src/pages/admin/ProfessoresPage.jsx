@@ -3,9 +3,10 @@ import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-nat
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
-import { mockTeacherDashService as teacherDashService } from '../../mocks/mockServices';
+import { teacherDashService } from '../../services/dashboard/teacherDashService';
 import { Users, DollarSign, Clock, BarChart2 } from 'lucide-react-native';
-import { translateSubject, translateTeacherStatus } from '../../utils/tradutionUtils';
+import { translateTeacherStatus } from '../../utils/tradutionUtils';
+import { SubjectBadge } from '../../components/admin/SubjectBadge';
 
 export default function ProfessoresPage() {
     const [stats, setStats] = useState(null);
@@ -69,15 +70,12 @@ export default function ProfessoresPage() {
                 data={teachers}
                 columns={[
                     { label: 'Professor', accessor: 'name' },
-                    { label: 'Matérias', accessor: 'subject', render: (row) => {
-                        const subjects = Array.isArray(row.subject) ? row.subject : [row.subject];
-                        return <Text style={{ color: '#1F2937', fontSize: 13 }}>{subjects.map(s => translateSubject(s)).join(', ')}</Text>;
-                    }},
+                    { label: 'Matérias', accessor: 'subject', render: (row) => <SubjectBadge subjects={row.subject} /> },
                     { label: 'Horas', accessor: 'hours', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>{row.hours}h</Text> },
                     { label: 'Valor/Hora', accessor: 'value', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>R$ {Number(row.value).toFixed(2)}</Text> },
                     { label: 'Status', accessor: 'status', render: (row) => {
                         const translated = translateTeacherStatus(row.status);
-                        const isActive = row.status === 'ACTIVE' || row.status === 'Ativo';
+                        const isActive = row.status?.toUpperCase() === 'ACTIVE' || row.status === 'Ativo';
                         return (
                             <View style={{ backgroundColor: isActive ? '#DCFCE7' : '#FEE2E2', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 }}>
                                 <Text style={{ color: isActive ? '#166534' : '#991B1B', fontSize: 11, fontWeight: '700' }}>{translated}</Text>

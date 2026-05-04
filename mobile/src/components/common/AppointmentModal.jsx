@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet, Alert, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet, Image } from "react-native";
 import { X, Calendar, Clock, MapPin, DollarSign, Phone } from "lucide-react-native";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
+import { AlertModal } from "../ui/AlertModal";
 import { appointmentService } from "../../services/appointmentService";
+import { getProfessorImage } from "../../mocks/mockImages";
 import {
     translateSubject,
     translateProfessorTitle,
@@ -22,6 +24,7 @@ export const AppointmentModal = ({
     const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
     const [confirmCompleteOpen, setConfirmCompleteOpen] = useState(false);
     const [loadingAction, setLoadingAction] = useState(false);
+    const [errorAlert, setErrorAlert] = useState({ visible: false, message: '' });
 
     const handleCancelClick = () => setConfirmCancelOpen(true);
     const handleCompleteClick = () => setConfirmCompleteOpen(true);
@@ -34,7 +37,7 @@ export const AppointmentModal = ({
             onClose();
         } catch (error) {
             console.error(`Erro ao atualizar status para ${newStatus}:`, error);
-            Alert.alert("Erro", "Não foi possível atualizar o status. Tente novamente.");
+            setErrorAlert({ visible: true, message: 'Não foi possível atualizar o status. Tente novamente.' });
         } finally {
             setLoadingAction(false);
         }
@@ -60,6 +63,17 @@ export const AppointmentModal = ({
 
     const subjectPt = translateSubject(appointment.subject);
     const professorTitlePt = translateProfessorTitle(appointment.professorTitle);
+
+    const rawImageUrl = appointment.professorImageUrl;
+    let resolvedProfessorImage;
+    if (rawImageUrl && typeof rawImageUrl === 'string' && rawImageUrl.startsWith('http')) {
+        resolvedProfessorImage = { uri: rawImageUrl };
+    } else if (rawImageUrl && typeof rawImageUrl === 'object') {
+        // Already a resolved require() image object
+        resolvedProfessorImage = rawImageUrl;
+    } else {
+        resolvedProfessorImage = getProfessorImage(appointment.professorName);
+    }
 
     const cancelMessage = `Tem certeza de que deseja CANCELAR esta aula?\n\nAo cancelar, você não poderá marcar essa aula como concluída posteriormente. Se tiver qualquer dúvida, entre em contato com o professor correspondente ou envie um email para studi@gmail.com antes de prosseguir.`;
     const completeMessage = `Tenha certeza de marcar a aula como CONCLUÍDA apenas se você realmente realizou a aula com o professor correspondente.\n\nCaso tenha qualquer dúvida sobre o que registrar, consulte o professor correspondente ou envie um email para studi@gmail.com antes de confirmar a conclusão.`;
@@ -88,11 +102,13 @@ export const AppointmentModal = ({
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {/* Professor Info */}
                             <View style={styles.professorInfo}>
-                                <Image
-                                    source={{ uri: appointment.professorImageUrl }}
-                                    style={styles.professorImage}
-                                    resizeMode="cover"
-                                />
+                                {resolvedProfessorImage ? (
+                                    <Image
+                                        source={typeof resolvedProfessorImage === 'string' ? { uri: resolvedProfessorImage } : resolvedProfessorImage}
+                                        style={styles.professorImage}
+                                        resizeMode="cover"
+                                    />
+                                ) : null}
                                 <View style={styles.professorDetails}>
                                     <Text style={styles.professorName}>{appointment.professorName}</Text>
                                     <Text style={styles.professorTitle}>{professorTitlePt}</Text>
@@ -107,7 +123,7 @@ export const AppointmentModal = ({
                                 </View>
                                 <View style={styles.detailRow}>
                                     <Clock size={20} color="#3970B7" style={styles.detailIcon} />
-                                    <Text style={styles.detailText}>{formattedTime} • Duração: {appointment.duration}min</Text>
+                                    <Text style={styles.detailText}>{formattedTime} • Duração: {appointment.duration} min</Text>
                                 </View>
                                 <View style={styles.detailRow}>
                                     <MapPin size={20} color="#3970B7" style={styles.detailIcon} />
@@ -183,6 +199,8 @@ export const AppointmentModal = ({
                 onConfirm={handleConfirmComplete}
                 onCancel={() => setConfirmCompleteOpen(false)}
             />
+
+            <AlertModal visible={errorAlert.visible} type="error" title="Erro" message={errorAlert.message} onClose={() => setErrorAlert({ visible: false, message: '' })} />
         </>
     );
 };

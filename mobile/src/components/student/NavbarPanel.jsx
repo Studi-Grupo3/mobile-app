@@ -117,20 +117,20 @@ const NavbarPanel = ({ role, percentComplete = 0 }) => {
                 {/* Desktop Layout */}
                 {isDesktop && (
                     <View style={styles.desktopContainer}>
-                        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+                        <TouchableOpacity onPress={() => navigation.navigate("Dashboard")}>
                             <LogoPlaceholder />
                         </TouchableOpacity>
 
                         <View style={styles.linksContainer}>
                             {isTeacher ? (
                                 <>
-                                    <TouchableOpacity onPress={() => navigation.navigate("TeacherDashboard")}><Text style={styles.linkText}>Início</Text></TouchableOpacity>
-                                    <TouchableOpacity onPress={() => navigation.navigate("TeacherClasses")}><Text style={styles.linkText}>Aulas</Text></TouchableOpacity>
+                                    <TouchableOpacity onPress={() => navigation.navigate("Dashboard")}><Text style={styles.linkText}>Início</Text></TouchableOpacity>
+                                    <TouchableOpacity onPress={() => navigation.navigate("Classes")}><Text style={styles.linkText}>Aulas</Text></TouchableOpacity>
                                 </>
                             ) : (
                                 <>
-                                    <TouchableOpacity onPress={() => navigation.navigate("StudentDashboard")}><Text style={styles.linkText}>Painel</Text></TouchableOpacity>
-                                    <TouchableOpacity onPress={() => navigation.navigate("StudentSchedule")}><Text style={styles.linkText}>Agendamentos</Text></TouchableOpacity>
+                                    <TouchableOpacity onPress={() => navigation.navigate("Dashboard")}><Text style={styles.linkText}>Painel</Text></TouchableOpacity>
+                                    <TouchableOpacity onPress={() => navigation.navigate("Appointments")}><Text style={styles.linkText}>Agendamentos</Text></TouchableOpacity>
                                 </>
                             )}
                         </View>

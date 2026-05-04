@@ -34,7 +34,7 @@ const NavbarHome = () => {
     return (
         <View style={styles.navbar}>
             {/* Logo */}
-            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+            <TouchableOpacity onPress={() => navigation.navigate("Dashboard")}>
                 <Logo />
             </TouchableOpacity>
 

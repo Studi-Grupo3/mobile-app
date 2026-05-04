@@ -3,6 +3,7 @@ import { View, Text, FlatList, RefreshControl, StyleSheet } from "react-native";
 import { appointmentService } from "../../../services/appointmentService";
 import { authService } from "../../../services/authService";
 import { mockStudentAppointments } from "../../../mocks/mockData";
+import { getProfessorImage } from "../../../mocks/mockImages";
 import { AppointmentCard } from "./AppointmentCard";
 import { AppointmentModal } from "../../common/AppointmentModal";
 import { SkeletonAppointmentCard } from "../../common/SkeletonAppointmentCard";
@@ -56,10 +57,24 @@ export const AllAppointments = ({ filter = "ALL" }) => {
     }, [fetchAppointments]);
 
     const getFilteredAppointments = () => {
+        const IMAGE_SOURCE_CONFIG = { useMock: true };
+
         return appointments.map(appt => {
             const dt = new Date(appt.dateTime);
+            let finalProfessorImage = appt.professorImageUrl;
+
+            // Only use backend URL if it's a valid http(s) URL
+            if (!finalProfessorImage || !finalProfessorImage.startsWith('http')) {
+                finalProfessorImage = null;
+            }
+
+            if (!finalProfessorImage && IMAGE_SOURCE_CONFIG.useMock) {
+                finalProfessorImage = getProfessorImage(appt.professorName);
+            }
+
             return {
                 ...appt,
+                professorImageUrl: finalProfessorImage,
                 displayDate: dt.toLocaleDateString("pt-BR", {
                     weekday: "long", day: "numeric", month: "long"
                 }),
@@ -130,7 +145,7 @@ export const AllAppointments = ({ filter = "ALL" }) => {
                         professorPhone={item.professorPhone}
                         date={item.displayDate}
                         time={item.displayTime}
-                        duration={`${item.duration}min`}
+                        duration={`${item.duration} min`}
                         location={item.location}
                         status={item.status}
                         online={item.online}

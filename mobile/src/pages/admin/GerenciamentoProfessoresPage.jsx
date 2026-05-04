@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, ActivityIndicator, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, ScrollView, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
-import { mockTeacherManagerService as teacherManagerService } from '../../mocks/mockServices';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { teacherManagerService } from '../../services/dashboard/teacherManagerService';
 import { translateSubject, subjectNamesPt } from '../../utils/tradutionUtils';
 import { UserPlus, Edit2, Trash2, RefreshCw, Copy, ChevronDown } from 'lucide-react-native';
 
@@ -20,18 +21,25 @@ export default function GerenciamentoProfessoresPage() {
     const [password, setPassword] = useState('');
     const [showSubjectPicker, setShowSubjectPicker] = useState(false);
 
+    // Alert modal state
+    const [alertConfig, setAlertConfig] = useState({ visible: false, type: 'info', title: '', message: '', buttons: null });
+    const showAlert = (type, title, message, buttons) => setAlertConfig({ visible: true, type, title, message, buttons });
+    const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
     const subjectOptions = Object.entries(subjectNamesPt).map(([key, label]) => ({ key, label }));
 
     useEffect(() => {
         load();
     }, []);
 
+    const ADMIN_EMAIL = 'admin@exemplo.com';
+
     const load = async () => {
         setLoading(true);
         try {
             const data = await teacherManagerService.list();
             const list = Array.isArray(data) ? data : (data.content || []);
-            setProfessores(list);
+            setProfessores(list.filter(p => p.email?.toLowerCase() !== ADMIN_EMAIL));
         } catch (error) {
             console.error(error);
         } finally {
@@ -50,7 +58,7 @@ export default function GerenciamentoProfessoresPage() {
 
     const copyToClipboard = async (text) => {
         await Clipboard.setStringAsync(text);
-        Alert.alert('Copiado!', 'Senha copiada para a área de transferência.');
+        showAlert('success', 'Copiado!', 'Senha copiada para a área de transferência.');
     };
 
     const openNew = () => {
@@ -74,37 +82,42 @@ export default function GerenciamentoProfessoresPage() {
 
     const save = async () => {
         if (!name.trim() || !email.trim()) {
-            Alert.alert('Campos obrigatórios', 'Preencha pelo menos o nome e o email.');
+            showAlert('warning', 'Campos obrigatórios', 'Preencha pelo menos o nome e o email.');
             return;
         }
-        const payload = { name, email, cpf, subject, password };
+        const payload = { name, email, cpf, subjects: subject ? [subject] : [], password };
         try {
             if (editingId) {
                 await teacherManagerService.update(editingId, payload);
+                showAlert('success', 'Atualizado!', 'Professor atualizado com sucesso.');
             } else {
                 await teacherManagerService.create(payload);
-                Alert.alert(
-                    'Professor criado!',
-                    `Dados de acesso:\n\nEmail: ${email}\nSenha: ${password}\n\nAnote ou copie a senha antes de fechar.`,
-                    [{ text: 'OK' }]
-                );
+                showAlert('success', 'Professor criado!', 'O professor foi cadastrado com sucesso.');
             }
             setShowForm(false);
             load();
         } catch (e) {
-            Alert.alert("Erro", "Falha ao salvar professor");
+            const errorMsg = e?.response?.data?.message || e?.response?.data?.errors?.join('\n') || 'Falha ao salvar professor. Verifique os dados e tente novamente.';
+            const hasCpf = errorMsg.toLowerCase().includes('cpf');
+            showAlert('error', hasCpf ? 'CPF inválido' : 'Erro ao salvar', errorMsg);
         }
     };
 
     const confirmDelete = async (id) => {
-        Alert.alert("Confirmar", "Deletar professor?", [
-            { text: "Cancelar", style: "cancel" },
+        showAlert('warning', 'Confirmar exclusão', 'Tem certeza que deseja deletar este professor?', [
+            { text: 'Cancelar', style: 'cancel', onPress: hideAlert },
             {
-                text: "Deletar",
-                style: "destructive",
+                text: 'Deletar',
+                style: 'destructive',
                 onPress: async () => {
-                    await teacherManagerService.softDelete(id);
-                    load();
+                    hideAlert();
+                    try {
+                        await teacherManagerService.softDelete(id);
+                        load();
+                        showAlert('success', 'Excluído!', 'Professor removido com sucesso.');
+                    } catch (e) {
+                        showAlert('error', 'Erro', 'Falha ao deletar professor.');
+                    }
                 }
             }
         ]);
@@ -211,6 +224,15 @@ export default function GerenciamentoProfessoresPage() {
                     </View>
                 </View>
             </Modal>
+
+            <AlertModal
+                visible={alertConfig.visible}
+                type={alertConfig.type}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                onClose={hideAlert}
+                buttons={alertConfig.buttons}
+            />
         </ScrollView>
     );
 }

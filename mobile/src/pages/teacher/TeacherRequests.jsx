@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { User, Calendar, Clock } from 'lucide-react-native';
 import { teacherService } from '../../services/teacherService';
-import { mockTeacherService } from '../../mocks/mockServices';
 import { translateSubject } from '../../utils/tradutionUtils';
 
 const Tag = ({ children, colorStyles }) => (
@@ -18,7 +17,7 @@ export default function TeacherRequests() {
 
     useEffect(() => {
         setLoading(true);
-        mockTeacherService.getRequests()
+        teacherService.getPendingLessons()
             .then(data => setRequests(Array.isArray(data) ? data : []))
             .catch(() => setRequests([]))
             .finally(() => setLoading(false));
@@ -67,7 +66,7 @@ export default function TeacherRequests() {
                     </View>
                     <View style={styles.infoRow}>
                         <Clock size={12} color="gray" />
-                        <Text style={styles.infoText}>{req.time} • {req.duration}min</Text>
+                        <Text style={styles.infoText}>{req.time} • {req.duration} min</Text>
                     </View>
                     {req.message ? (
                         <Text style={styles.motifText}>

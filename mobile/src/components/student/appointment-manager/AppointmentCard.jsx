@@ -38,7 +38,7 @@ export const AppointmentCard = ({
                 <View style={styles.avatarContainer}>
                     {professorImageUrl ? (
                         <Image
-                            source={{ uri: professorImageUrl }}
+                            source={typeof professorImageUrl === 'string' ? { uri: professorImageUrl } : professorImageUrl}
                             style={styles.avatar}
                             resizeMode="cover"
                         />
@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     card: {
         backgroundColor: 'white',
         borderRadius: 8,
-        padding: 16,
-        marginBottom: 16,
+        padding: 14,
+        marginBottom: 12,
         elevation: 1,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     },
     subject: {
         color: '#3970B7',
-        fontSize: 18, // text-lg
+        fontSize: 16,
         fontWeight: 'bold',
         flex: 1,
         marginRight: 8,
@@ -119,14 +119,14 @@ const styles = StyleSheet.create({
     professorContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
     },
     avatarContainer: {
-        width: 48, // w-12
-        height: 48, // h-12
-        borderRadius: 24,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
         overflow: 'hidden',
-        backgroundColor: '#E5E7EB', // gray-200
+        backgroundColor: '#E5E7EB',
     },
     avatar: {
         width: '100%',
@@ -160,8 +160,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     detailsContainer: {
-        gap: 8,
-        marginBottom: 16,
+        gap: 6,
+        marginBottom: 12,
     },
     detailRow: {
         flexDirection: 'row',

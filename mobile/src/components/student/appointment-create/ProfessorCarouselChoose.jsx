@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ActivityIn
 import { ChevronLeft, ChevronRight, MapPin, Laptop, Phone } from 'lucide-react-native';
 import { teacherService } from '../../../services/teacherService';
 import { formatPhoneNumber } from '../../../utils/phoneUtils';
+import { getProfessorImage } from '../../../mocks/mockImages';
 
 const subjectMap = {
     PORTUGUESE: "Português",
@@ -22,11 +23,11 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
 
     // Mock professors used as fallback when API is unavailable
     const mockProfessors = [
-        { id: 2, name: 'Carlos Oliveira', subjects: ['MATHEMATICS', 'PHYSICS'], classType: 'ONLINE', cellphoneNumber: '11988885678', resumeTeacher: 'Licenciado em Matemática pela USP. 10 anos de experiência em aulas particulares.' },
-        { id: 4, name: 'Ana Beatriz', subjects: ['PORTUGUESE', 'HISTORY'], classType: 'ONLINE', cellphoneNumber: '11977774321', resumeTeacher: 'Mestra em Letras pela PUC-SP. Especialista em redação ENEM.' },
-        { id: 5, name: 'Dr. Roberto Nunes', subjects: ['PHYSICS', 'MATHEMATICS'], classType: 'IN_PERSON', cellphoneNumber: '11966663333', resumeTeacher: 'Doutor em Física pela UNICAMP. Aulas dinâmicas e práticas.' },
-        { id: 6, name: 'Fernanda Lima', subjects: ['CHEMISTRY', 'SCIENCE'], classType: 'ONLINE', cellphoneNumber: '11955552222', resumeTeacher: 'Bacharel em Química pela UNESP. Foco em vestibulares.' },
-        { id: 7, name: 'Paulo Henrique', subjects: ['HISTORY', 'GEOGRAPHY'], classType: 'ONLINE', cellphoneNumber: '11944441111', resumeTeacher: 'Historiador e geógrafo. Apaixonado por ensino.' },
+        { id: 2, name: 'Prof. Carlos Lima', subjects: ['MATHEMATICS', 'PHYSICS'], classType: 'ONLINE', cellphoneNumber: '11988885678', resumeTeacher: 'Licenciado em Matemática pela USP. 10 anos de experiência em aulas particulares.' },
+        { id: 4, name: 'Prof. Beatriz Costa', subjects: ['PORTUGUESE'], classType: 'ONLINE', cellphoneNumber: '11977774321', resumeTeacher: 'Mestra em Letras pela PUC-SP. Especialista em redação ENEM.' },
+        { id: 5, name: 'Prof. Fernanda Alvez', subjects: ['CHEMISTRY', 'SCIENCE'], classType: 'ONLINE', cellphoneNumber: '11966663333', resumeTeacher: 'Farmacêutica e licenciada em Química, apaixonada pelo ensino.' },
+        { id: 6, name: 'Prof. Rodrigo Santos', subjects: ['HISTORY'], classType: 'IN_PERSON', cellphoneNumber: '11955552222', resumeTeacher: 'Historiador com abordagem interdisciplinar e dinâmica.' },
+        { id: 7, name: 'Prof. Marina Oliveira', subjects: ['GEOGRAPHY'], classType: 'ONLINE', cellphoneNumber: '11944441111', resumeTeacher: 'Geógrafa pela UNICAMP, especialista em geopolítica.' },
     ];
 
     useEffect(() => {
@@ -48,6 +49,7 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
     }, []);
 
     const enrichProfessors = (list) => {
+        const IMAGE_SOURCE_CONFIG = { useMock: true };
         const allowedSubjects = [
             "PORTUGUESE", "MATHEMATICS", "HISTORY", "GEOGRAPHY",
             "SCIENCE", "PHYSICS", "CHEMISTRY",
@@ -65,8 +67,19 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
             if (isPresencial && isOnline) locationLabel = 'Online e Presencial';
             else if (isPresencial) locationLabel = 'Presencial';
 
+            // Resolve mock image from name
+            let profilePhotoUrl = prof.profilePhotoUrl || null;
+            // Only use backend URL if it's a valid http(s) URL
+            if (profilePhotoUrl && !profilePhotoUrl.startsWith('http')) {
+                profilePhotoUrl = null;
+            }
+            if (!profilePhotoUrl && IMAGE_SOURCE_CONFIG.useMock) {
+                profilePhotoUrl = getProfessorImage(prof.name);
+            }
+
             return {
                 ...prof,
+                profilePhotoUrl,
                 locationLabel,
                 isOnline: isOnline || (!isPresencial),
                 isPresencial,
@@ -131,7 +144,7 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
                     <View style={styles.avatarCircle}>
                         {currentProf.profilePhotoUrl ? (
                             <Image
-                                source={{ uri: currentProf.profilePhotoUrl }}
+                                source={typeof currentProf.profilePhotoUrl === 'string' ? { uri: currentProf.profilePhotoUrl } : currentProf.profilePhotoUrl}
                                 style={styles.avatarImage}
                                 resizeMode="cover"
                             />
@@ -217,14 +230,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     card: {
-        width: Dimensions.get('window').width - 40,
+        width: Dimensions.get('window').width - 64,
         backgroundColor: 'white',
-        borderRadius: 16,
+        borderRadius: 14,
         shadowColor: "#3970B7",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.10,
+        shadowRadius: 8,
+        elevation: 4,
         overflow: 'hidden',
         position: 'relative',
         borderWidth: 1,
@@ -232,13 +245,13 @@ const styles = StyleSheet.create({
     },
     avatarSection: {
         backgroundColor: '#3970B7',
-        paddingVertical: 24,
+        paddingVertical: 18,
         alignItems: 'center',
     },
     avatarCircle: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 70,
+        height: 70,
+        borderRadius: 35,
         backgroundColor: '#FECB0A',
         justifyContent: 'center',
         alignItems: 'center',
@@ -246,9 +259,9 @@ const styles = StyleSheet.create({
         borderColor: '#FFF',
     },
     avatarImage: {
-        width: 74,
-        height: 74,
-        borderRadius: 37,
+        width: 64,
+        height: 64,
+        borderRadius: 32,
     },
     avatarInitial: {
         fontSize: 32,
@@ -275,10 +288,10 @@ const styles = StyleSheet.create({
         right: 8,
     },
     detailsContainer: {
-        padding: 20,
+        padding: 14,
     },
     profName: {
-        fontSize: 20,
+        fontSize: 17,
         fontWeight: '700',
         color: '#1E293B',
         textAlign: 'center',
@@ -333,9 +346,9 @@ const styles = StyleSheet.create({
     },
     chooseButton: {
         width: '100%',
-        paddingVertical: 14,
-        marginTop: 16,
-        borderRadius: 12,
+        paddingVertical: 12,
+        marginTop: 12,
+        borderRadius: 10,
         backgroundColor: '#FECB0A',
         alignItems: 'center',
     },

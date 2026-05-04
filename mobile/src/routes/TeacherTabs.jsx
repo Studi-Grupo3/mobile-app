@@ -1,12 +1,24 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
 import TeacherInitialPage from '../pages/teacher/TeacherInitialPage';
 import TeacherClassesPage from '../pages/teacher/TeacherClassesPage';
 import TeacherGraph from '../pages/teacher/TeacherGraph';
 import ProfilePage from '../pages/common/ProfilePage';
+import CompleteTeacherRegistrationPage from '../pages/teacher/CompleteTeacherRegistrationPage';
 import { Home, BookOpen, BarChart2, User } from 'lucide-react-native';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+function ProfileTeacherStack() {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="ProfileMain" component={ProfilePage} />
+            <Stack.Screen name="CompleteTeacherRegistration" component={CompleteTeacherRegistrationPage} />
+        </Stack.Navigator>
+    );
+}
 
 export function TeacherTabs() {
     return (
@@ -18,7 +30,7 @@ export function TeacherTabs() {
                 tabBarStyle: {
                     backgroundColor: '#3970B7',
                     borderTopWidth: 0,
-                    height: 62,
+                    height: 65,
                     paddingBottom: 8,
                     paddingTop: 6,
                     elevation: 12,
@@ -30,6 +42,7 @@ export function TeacherTabs() {
                 tabBarLabelStyle: {
                     fontSize: 11,
                     fontWeight: '600',
+                    marginTop: -2,
                 },
             }}
         >
@@ -59,11 +72,17 @@ export function TeacherTabs() {
             />
             <Tab.Screen
                 name="Profile"
-                component={ProfilePage}
+                component={ProfileTeacherStack}
                 options={{
                     tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
                     tabBarLabel: 'Perfil'
                 }}
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('Profile', { screen: 'ProfileMain' });
+                    },
+                })}
             />
         </Tab.Navigator>
     );

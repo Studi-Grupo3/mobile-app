@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft } from 'lucide-react-native';
@@ -7,10 +7,13 @@ import ContentStudentRegistration from '../../components/student/registration/Co
 import { studentService } from '../../services/studentService';
 import { authService } from '../../services/authService';
 import { User, Image as ImageIcon, Users } from 'lucide-react-native';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
 export default function CompleteStudentRegistrationPage() {
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
+    const { alertConfig, showAlert, hideAlert } = useAlert();
     const [activeTab, setActiveTab] = useState('Dados do Aluno');
     const [percentComplete, setPercentComplete] = useState(0);
     const [formData, setFormData] = useState({
@@ -78,7 +81,7 @@ export default function CompleteStudentRegistrationPage() {
         try {
             const studentId = formData.id || await authService.getUserId();
             if (!studentId) {
-                Alert.alert('Erro', 'Usu\u00e1rio n\u00e3o encontrado.');
+                showAlert('error', 'Erro', 'Usuário não encontrado.');
                 return;
             }
             const payload = {
@@ -96,10 +99,10 @@ export default function CompleteStudentRegistrationPage() {
                 },
             };
             await studentService.update(studentId, payload);
-            Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+            showAlert('success', 'Sucesso', 'Perfil atualizado com sucesso!');
         } catch (err) {
             console.error('Erro ao salvar:', err);
-            Alert.alert('Erro', 'N\u00e3o foi poss\u00edvel salvar as altera\u00e7\u00f5es. Tente novamente.');
+            showAlert('error', 'Erro', 'Não foi possível salvar as alterações. Tente novamente.');
         }
     };
 
@@ -124,7 +127,7 @@ export default function CompleteStudentRegistrationPage() {
                 <View style={styles.progressContainer}>
                     <Text style={styles.progressText}>Completar Perfil: {percentComplete}%</Text>
                     <View style={[styles.statusBadge, percentComplete === 100 ? styles.statusGreen : styles.statusOrange]}>
-                        <Text style={styles.statusText}>{percentComplete === 0 ? "Iniciado" : "Em Progresso"}</Text>
+                        <Text style={styles.statusText}>{percentComplete === 100 ? "Completo" : percentComplete === 0 ? "Iniciado" : "Em Progresso"}</Text>
                     </View>
                 </View>
 
@@ -149,7 +152,7 @@ export default function CompleteStudentRegistrationPage() {
                     ))}
                 </View>
 
-                <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
                     <ContentStudentRegistration
                         current={activeTab}
                         formData={formData}
@@ -159,6 +162,7 @@ export default function CompleteStudentRegistrationPage() {
                     />
                 </ScrollView>
             </View>
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }
