@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Modal,
@@ -12,15 +12,14 @@ import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { overviewDashService } from '../../services/dashboard/overviewDashService';
-import { DollarSign, Users, Clock, CalendarCheck } from 'lucide-react-native';
-import { translatePaymentStatus } from '../../utils/tradutionUtils';
-import { SubjectBadge } from '../../components/admin/SubjectBadge';
-import { mockOverviewDashService } from '../../mocks/mockServices';
 import { insightsService } from '../../services/insightsService';
 import { DollarSign, Users, Clock, CalendarCheck, Brain, X, RefreshCw } from 'lucide-react-native';
-import { translateSubject, translatePaymentStatus } from '../../utils/tradutionUtils';
+import { translatePaymentStatus } from '../../utils/tradutionUtils';
+import { SubjectBadge } from '../../components/admin/SubjectBadge';
+import { useNavigation } from '@react-navigation/native';
 
 export default function VisaoGeralPage() {
+    const navigation = useNavigation();
     const [stats, setStats] = useState({
         totalRevenue: 0,
         totalTeachers: 0,
@@ -38,33 +37,33 @@ export default function VisaoGeralPage() {
     const [insightsGeneratedAt, setInsightsGeneratedAt] = useState('');
     const [insightsError, setInsightsError] = useState('');
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const [statsData, revenueChart, lessonsChart, paymentsData] = await Promise.all([
-                    overviewDashService.getStats(),
-                    overviewDashService.getMonthlyRevenueChart(),
-                    overviewDashService.getLessonsPerDayChart(),
-                    overviewDashService.getRecentPaymentsTable()
-                ]);
-                const [statsData, revenueChart, lessonsChart, paymentsData] =
-                    await Promise.all([
-                        mockOverviewDashService.getStats(),
-                        mockOverviewDashService.getMonthlyRevenueChart(),
-                        mockOverviewDashService.getLessonsPerDayChart(),
-                        mockOverviewDashService.getRecentPaymentsTable(),
-                    ]);
-                setStats(statsData);
-                setCharts([revenueChart, lessonsChart]);
-                setPayments(paymentsData);
-            } catch (error) {
-                console.error('Error fetching overview data:', error);
-            } finally {
-                setLoading(false);
-            }
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [statsData, revenueChart, lessonsChart, paymentsData] = await Promise.all([
+                overviewDashService.getStats(),
+                overviewDashService.getMonthlyRevenueChart(),
+                overviewDashService.getLessonsPerDayChart(),
+                overviewDashService.getRecentPaymentsTable()
+            ]);
+            setStats(statsData);
+            setCharts([revenueChart, lessonsChart]);
+            setPayments(paymentsData);
+        } catch (error) {
+            console.error('Error fetching overview data:', error);
+        } finally {
+            setLoading(false);
         }
-        fetchData();
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('adminRefresh', fetchData);
+        return unsubscribe;
+    }, [navigation, fetchData]);
 
     async function handleInsightsPress() {
         setInsightsText('');
@@ -104,63 +103,26 @@ export default function VisaoGeralPage() {
         );
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <StatCard
-                title={`R$ ${stats.totalRevenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
-                subtitle="Receita Total do Mês"
-                icon={<DollarSign size={20} color="#3970B7" />}
-            />
-            <StatCard
-                title={stats.totalTeachers}
-                subtitle="Professores Cadastrados"
-                icon={<Users size={20} color="#3970B7" />}
-            />
-            <StatCard
-                title={`R$ ${stats.pendingAmount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
-                subtitle="Valor Pendente de Pagamento"
-                icon={<Clock size={20} color="#E8A317" />}
-            />
-            <StatCard
-                title={stats.totalAppointments}
-                subtitle="Agendamentos no Mês"
-                icon={<CalendarCheck size={20} color="#3970B7" />}
-            />
-
-            <ChartSection charts={charts} />
-
-            <TableSection
-                title="Pagamentos Recentes"
-                data={payments}
-                columns={[
-                    { label: 'Professor', accessor: 'teacherName' },
-                    { label: 'Matéria', accessor: 'subject', render: (row) => <SubjectBadge subjects={row.subject} /> },
-                    { label: 'Valor/Hora', accessor: 'hourlyRate' },
-                    { label: 'Total', accessor: 'totalValue' },
-                    { label: 'Status', accessor: 'paymentStatus', render: (row) => {
-                        const isPaid = row.paymentStatus === 'Pago';
-                        return (
-                            <View style={{ backgroundColor: isPaid ? '#DCFCE7' : '#FEF9C3', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 }}>
-                                <Text style={{ color: isPaid ? '#166534' : '#92400E', fontSize: 11, fontWeight: '700' }}>{row.paymentStatus}</Text>
         <>
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 <StatCard
                     title={`R$ ${stats.totalRevenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
-                    subtitle="Receita Total"
+                    subtitle="Receita Total do Mês"
                     icon={<DollarSign size={20} color="#3970B7" />}
                 />
                 <StatCard
                     title={stats.totalTeachers}
-                    subtitle="Professores"
+                    subtitle="Professores Cadastrados"
                     icon={<Users size={20} color="#3970B7" />}
                 />
                 <StatCard
                     title={`R$ ${stats.pendingAmount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
-                    subtitle="Valor Pendente"
+                    subtitle="Valor Pendente de Pagamento"
                     icon={<Clock size={20} color="#E8A317" />}
                 />
                 <StatCard
                     title={stats.totalAppointments}
-                    subtitle="Agendamentos"
+                    subtitle="Agendamentos no Mês"
                     icon={<CalendarCheck size={20} color="#3970B7" />}
                 />
 
@@ -185,11 +147,7 @@ export default function VisaoGeralPage() {
                         {
                             label: 'Matéria',
                             accessor: 'subject',
-                            render: (row) => (
-                                <Text style={{ color: '#1F2937', fontSize: 14 }}>
-                                    {translateSubject(row.subject)}
-                                </Text>
-                            ),
+                            render: (row) => <SubjectBadge subjects={row.subject} />,
                         },
                         { label: 'Valor/Hora', accessor: 'hourlyRate' },
                         { label: 'Total', accessor: 'totalValue' },

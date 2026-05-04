@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
@@ -9,30 +10,38 @@ import { translateTeacherStatus } from '../../utils/tradutionUtils';
 import { SubjectBadge } from '../../components/admin/SubjectBadge';
 
 export default function ProfessoresPage() {
+    const navigation = useNavigation();
     const [stats, setStats] = useState(null);
     const [charts, setCharts] = useState([]);
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const [statsData, chartsData, teachersData] = await Promise.all([
-                    teacherDashService.getStats(),
-                    teacherDashService.getCharts(),
-                    teacherDashService.getPayments()
-                ]);
-                setStats(statsData);
-                setCharts(chartsData);
-                setTeachers(teachersData);
-            } catch (error) {
-                console.error("Error fetching teachers dash:", error);
-            } finally {
-                setLoading(false);
-            }
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [statsData, chartsData, teachersData] = await Promise.all([
+                teacherDashService.getStats(),
+                teacherDashService.getCharts(),
+                teacherDashService.getPayments()
+            ]);
+            setStats(statsData);
+            setCharts(chartsData);
+            setTeachers(teachersData);
+        } catch (error) {
+            console.error("Error fetching teachers dash:", error);
+        } finally {
+            setLoading(false);
         }
-        fetchData();
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('adminRefresh', fetchData);
+        return unsubscribe;
+    }, [navigation, fetchData]);
 
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 

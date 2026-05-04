@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft } from 'lucide-react-native';
 import { AlertModal } from '../../components/ui/AlertModal';
 import { useAlert } from '../../hooks/useAlert';
@@ -21,24 +21,26 @@ const steps = [
     { key: "pagamento", label: "Pagamento", title: "Pagamento", Component: Payment },
 ];
 
+const createInitialFormData = () => ({
+    phase: "",
+    subject: "",
+    duration: "",
+    materials: [],
+    classModel: null,
+    professorId: null,
+    date: null,
+    time: null,
+    personal: {},
+    endereco: {},
+    pagamento: {},
+});
+
 export default function AppointmentCreatePage() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const { alertConfig, showAlert, hideAlert } = useAlert();
     const [currentStep, setCurrentStep] = useState(0);
-    const [formData, setFormData] = useState({
-        phase: "",
-        subject: "",
-        duration: "",
-        materials: [],
-        classModel: null,
-        professorId: null,
-        date: null,
-        time: null,
-        personal: {},
-        endereco: {},
-        pagamento: {},
-    });
+    const [formData, setFormData] = useState(createInitialFormData);
 
     const Step = steps[currentStep];
 
@@ -63,6 +65,14 @@ export default function AppointmentCreatePage() {
             navigation.goBack();
         }
     };
+
+    useFocusEffect(
+        useCallback(() => {
+            setCurrentStep(0);
+            setFormData(createInitialFormData());
+            hideAlert();
+        }, [hideAlert])
+    );
 
     // Calculate total logic (simplified)
     useEffect(() => {

@@ -71,6 +71,8 @@ const TabNav = ({ tabs, activeTab, onChange }) => (
 const DropdownSelect = ({ label, options, value, onSelect }) => {
     const [open, setOpen] = useState(false);
     const anim = useRef(new Animated.Value(0)).current;
+    const itemHeight = 44;
+    const menuMaxHeight = Math.min(options.length * itemHeight, 240);
 
     const selectedLabel = options.find(o => o.id === value)?.label || label;
 
@@ -83,7 +85,7 @@ const DropdownSelect = ({ label, options, value, onSelect }) => {
         }
     };
 
-    const maxH = anim.interpolate({ inputRange: [0, 1], outputRange: [0, options.length * 44] });
+    const maxH = anim.interpolate({ inputRange: [0, 1], outputRange: [0, menuMaxHeight] });
     const rotation = anim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
 
     return (
@@ -97,20 +99,27 @@ const DropdownSelect = ({ label, options, value, onSelect }) => {
                 </Animated.View>
             </TouchableOpacity>
             {open && (
-                <Animated.View style={[styles.dropdownMenu, { maxHeight: maxH }]}>
-                    {options.map(opt => (
-                        <TouchableOpacity
-                            key={opt.id}
-                            style={[styles.dropdownItem, value === opt.id && styles.dropdownItemActive]}
-                            onPress={() => { onSelect(opt.id); toggle(); }}
-                            activeOpacity={0.6}
-                        >
-                            <Text style={[styles.dropdownItemText, value === opt.id && styles.dropdownItemTextActive]}>
-                                {opt.label}
-                            </Text>
-                            {value === opt.id && <Check size={14} color="#3970B7" strokeWidth={3} />}
-                        </TouchableOpacity>
-                    ))}
+                <Animated.View style={[styles.dropdownMenu, { height: maxH }]}>
+                    <ScrollView
+                        style={styles.dropdownScroll}
+                        nestedScrollEnabled
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.dropdownScrollContent}
+                    >
+                        {options.map(opt => (
+                            <TouchableOpacity
+                                key={opt.id}
+                                style={[styles.dropdownItem, value === opt.id && styles.dropdownItemActive]}
+                                onPress={() => { onSelect(opt.id); toggle(); }}
+                                activeOpacity={0.6}
+                            >
+                                <Text style={[styles.dropdownItemText, value === opt.id && styles.dropdownItemTextActive]}>
+                                    {opt.label}
+                                </Text>
+                                {value === opt.id && <Check size={14} color="#3970B7" strokeWidth={3} />}
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
                 </Animated.View>
             )}
         </View>
@@ -407,6 +416,12 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
         shadowRadius: 4,
+    },
+    dropdownScroll: {
+        height: '100%',
+    },
+    dropdownScrollContent: {
+        paddingVertical: 2,
     },
     dropdownItem: {
         flexDirection: 'row',

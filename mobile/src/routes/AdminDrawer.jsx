@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import { Home, Users, Calendar, Settings, DollarSign, UserPlus, LogOut } from 'lucide-react-native';
+import { Home, Users, Calendar, Settings, DollarSign, UserPlus, LogOut, RefreshCw } from 'lucide-react-native';
 import { AuthContext } from '../context/authContext';
 import { AlertModal } from '../components/ui/AlertModal';
 
@@ -47,6 +47,9 @@ function CustomDrawerContent(props) {
 }
 
 const drawerStyles = StyleSheet.create({
+    refreshButton: {
+        marginRight: 16,
+    },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -67,7 +70,7 @@ export function AdminDrawer() {
     return (
         <Drawer.Navigator
             drawerContent={(props) => <CustomDrawerContent {...props} />}
-            screenOptions={{
+            screenOptions={({ navigation }) => ({
                 headerStyle: {
                     backgroundColor: '#3970B7',
                 },
@@ -75,6 +78,15 @@ export function AdminDrawer() {
                 headerTitleStyle: {
                     fontWeight: '600',
                 },
+                headerRight: () => (
+                    <TouchableOpacity
+                        onPress={() => navigation.emit({ type: 'adminRefresh' })}
+                        style={drawerStyles.refreshButton}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                        <RefreshCw size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                ),
                 drawerActiveTintColor: '#FFFFFF',
                 drawerActiveBackgroundColor: '#3970B7',
                 drawerInactiveTintColor: '#64748B',
@@ -85,7 +97,7 @@ export function AdminDrawer() {
                     fontWeight: '600',
                     fontSize: 14,
                 },
-            }}
+            })}
         >
             <Drawer.Screen
                 name="VisaoGeral"

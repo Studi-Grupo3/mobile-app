@@ -13,6 +13,7 @@ import {
     translateMonth
 } from "../../utils/tradutionUtils";
 import { formatPhoneNumber } from "../../utils/phoneUtils";
+import { parseUtcDateTime } from "../../utils/date";
 
 export const AppointmentModal = ({
     isOpen,
@@ -55,11 +56,12 @@ export const AppointmentModal = ({
 
     if (!appointment) return null;
 
-    const dt = new Date(appointment.dateTime);
-    const weekdayPt = translateWeekday(dt.toLocaleDateString("en-US", { weekday: "long" }));
-    const monthPt = translateMonth(dt.toLocaleDateString("en-US", { month: "long" }));
-    const formattedDate = `${weekdayPt}, ${dt.getDate()} de ${monthPt}`;
-    const formattedTime = dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const dateTimeValue = appointment.dateTime || (appointment.date && appointment.time ? `${appointment.date}T${appointment.time}` : null);
+    const dt = parseUtcDateTime(dateTimeValue);
+    const weekdayPt = dt ? translateWeekday(dt.toLocaleDateString("en-US", { weekday: "long" })) : '';
+    const monthPt = dt ? translateMonth(dt.toLocaleDateString("en-US", { month: "long" })) : '';
+    const formattedDate = dt ? `${weekdayPt}, ${dt.getDate()} de ${monthPt}` : '-';
+    const formattedTime = dt ? dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : '-';
 
     const subjectPt = translateSubject(appointment.subject);
     const professorTitlePt = translateProfessorTitle(appointment.professorTitle);

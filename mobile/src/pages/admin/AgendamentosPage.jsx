@@ -1,37 +1,47 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { appointmentDashService } from '../../services/dashboard/appointmentDashService';
 import { Calendar, CheckCircle, Users, Hourglass } from 'lucide-react-native';
 import { translateSubject, translateAppointmentStatus } from '../../utils/tradutionUtils';
+import { parseUtcDateTime } from '../../utils/date';
 
 export default function AgendamentosPage() {
+    const navigation = useNavigation();
     const [stats, setStats] = useState(null);
     const [charts, setCharts] = useState([]);
     const [tableData, setTableData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const [statsData, chartConfigs, tableValues] = await Promise.all([
-                    appointmentDashService.getStats(),
-                    appointmentDashService.getCharts(),
-                    appointmentDashService.getTable()
-                ]);
-                setStats(statsData);
-                setCharts(chartConfigs);
-                setTableData(tableValues);
-            } catch (error) {
-                console.error("Error fetching appointments dash:", error);
-            } finally {
-                setLoading(false);
-            }
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [statsData, chartConfigs, tableValues] = await Promise.all([
+                appointmentDashService.getStats(),
+                appointmentDashService.getCharts(),
+                appointmentDashService.getTable()
+            ]);
+            setStats(statsData);
+            setCharts(chartConfigs);
+            setTableData(tableValues);
+        } catch (error) {
+            console.error("Error fetching appointments dash:", error);
+        } finally {
+            setLoading(false);
         }
-        fetchData();
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('adminRefresh', fetchData);
+        return unsubscribe;
+    }, [navigation, fetchData]);
 
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 
@@ -72,8 +82,11 @@ export default function AgendamentosPage() {
                     { label: 'Professor', accessor: 'teacherName' },
                     { label: 'Matéria', accessor: 'subject', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>{translateSubject(row.subject)}</Text> },
                     { label: 'Data', accessor: 'date', render: (row) => {
-                        const d = row.date ? row.date.split('-').reverse().join('/') : '-';
-                        return <Text style={{ color: '#1F2937', fontSize: 14 }}>{d} {row.time || ''}</Text>;
+                        const dateTimeValue = row.dateTime || (row.date && row.time ? `${row.date}T${row.time}` : null);
+                        const dt = parseUtcDateTime(dateTimeValue);
+                        const d = dt ? dt.toLocaleDateString('pt-BR') : (row.date ? row.date.split('-').reverse().join('/') : '-');
+                        const t = dt ? dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : (row.time || '');
+                        return <Text style={{ color: '#1F2937', fontSize: 14 }}>{d} {t}</Text>;
                     }},
                     { label: 'Duração', accessor: 'duration', render: (row) => <Text style={{ color: '#1F2937', fontSize: 14 }}>{row.duration} min</Text> },
                     { label: 'Status', accessor: 'status', render: (row) => {

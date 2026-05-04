@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { StatCard } from '../../components/admin/StatCard';
 import { ToggleSwitch } from '../../components/ui/ToggleSwitch';
 import { AlertModal } from '../../components/ui/AlertModal';
@@ -9,6 +10,7 @@ import { translatePaymentStatus } from '../../utils/tradutionUtils';
 import { SubjectBadge } from '../../components/admin/SubjectBadge';
 
 export default function PagamentosPage() {
+    const navigation = useNavigation();
     const [stats, setStats] = useState({
         totalAmount: 0,
         pendingAmount: 0,
@@ -24,26 +26,33 @@ export default function PagamentosPage() {
     const showAlert = (type, title, message, buttons) => setAlertConfig({ visible: true, type, title, message, buttons });
     const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
-    useEffect(() => {
-        async function fetchData() {
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            const year = now.getFullYear();
-            try {
-                const [statsData, recentData] = await Promise.all([
-                    paymentDashService.getStats(month, year),
-                    paymentDashService.getRecent(month, year)
-                ]);
-                setStats(statsData);
-                setPayments(recentData);
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+    const fetchData = useCallback(async ({ withLoading = true } = {}) => {
+        if (withLoading) setLoading(true);
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        try {
+            const [statsData, recentData] = await Promise.all([
+                paymentDashService.getStats(month, year),
+                paymentDashService.getRecent(month, year)
+            ]);
+            setStats(statsData);
+            setPayments(recentData);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            if (withLoading) setLoading(false);
         }
-        fetchData();
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('adminRefresh', fetchData);
+        return unsubscribe;
+    }, [navigation, fetchData]);
 
     const doToggle = async (item) => {
         const now = new Date();
@@ -51,12 +60,7 @@ export default function PagamentosPage() {
         const year = now.getFullYear();
         try {
             await paymentDashService.toggleStatus(item.id, month, year);
-            const [statsData, recentData] = await Promise.all([
-                paymentDashService.getStats(month, year),
-                paymentDashService.getRecent(month, year)
-            ]);
-            setStats(statsData);
-            setPayments(recentData);
+            await fetchData({ withLoading: false });
         } catch (e) {
             showAlert('error', 'Erro', 'Falha ao atualizar status do pagamento.');
         }
