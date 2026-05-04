@@ -41,15 +41,36 @@ def _fetch_data() -> dict:
     conn = _get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        # KPIs gerais extraídos das colunas pré-calculadas da gold table
+        cursor.execute("""
+            SELECT
+                ROUND(MAX(kpi_total_schools), 0)                     AS kpi_total_schools,
+                ROUND(MAX(kpi_valid_records), 0)                     AS kpi_valid_records,
+                ROUND(MAX(kpi_overall_average_score), 2)             AS kpi_overall_avg,
+                ROUND(MAX(kpi_math_average_score), 2)                AS kpi_math_avg,
+                ROUND(MAX(kpi_portuguese_average_score), 2)          AS kpi_portuguese_avg,
+                ROUND(MAX(kpi_high_priority_school_share) * 100, 1)  AS kpi_high_priority_pct
+            FROM gold_school_proficiency
+        """)
+        kpi_row = cursor.fetchone()
+        kpis = [
+            {"metric_name": "Total de Escolas",               "metric_value": kpi_row["kpi_total_schools"]},
+            {"metric_name": "Registros Válidos",              "metric_value": kpi_row["kpi_valid_records"]},
+            {"metric_name": "Média Geral de Proficiência",    "metric_value": kpi_row["kpi_overall_avg"]},
+            {"metric_name": "Média em Matemática",            "metric_value": kpi_row["kpi_math_avg"]},
+            {"metric_name": "Média em Português",             "metric_value": kpi_row["kpi_portuguese_avg"]},
+            {"metric_name": "Escolas de Alta Prioridade (%)", "metric_value": kpi_row["kpi_high_priority_pct"]},
+        ]
+
         # Resumo agregado por matéria (para decisões de contratação)
         cursor.execute("""
             SELECT
                 subject_name,
-                COUNT(*)                              AS segments_count,
-                ROUND(AVG(average_score), 2)          AS overall_avg,
-                ROUND(AVG(low_performance_share_pct), 1) AS avg_low_perf_pct,
-                SUM(schools_covered)                  AS total_schools
-            FROM performance_by_subject_grade
+                COUNT(DISTINCT school_code)                            AS total_schools,
+                ROUND(AVG(proficiency_score), 2)                      AS overall_avg,
+                ROUND(AVG(subject_grade_low_performance_share_pct), 1) AS avg_low_perf_pct,
+                COUNT(*)                                               AS segments_count
+            FROM gold_school_proficiency
             GROUP BY subject_name
             ORDER BY overall_avg ASC
         """)
@@ -59,10 +80,10 @@ def _fetch_data() -> dict:
         cursor.execute("""
             SELECT
                 school_cycle,
-                COUNT(*)                              AS segments,
-                ROUND(AVG(average_score), 2)          AS avg_score,
-                ROUND(AVG(low_performance_share_pct), 1) AS avg_low_perf
-            FROM performance_by_subject_grade
+                COUNT(*)                                               AS segments,
+                ROUND(AVG(proficiency_score), 2)                      AS avg_score,
+                ROUND(AVG(subject_grade_low_performance_share_pct), 1) AS avg_low_perf
+            FROM gold_school_proficiency
             GROUP BY school_cycle
             ORDER BY avg_score ASC
         """)
@@ -72,10 +93,11 @@ def _fetch_data() -> dict:
         cursor.execute("""
             SELECT
                 subject_name, grade_label, school_cycle,
-                ROUND(average_score, 2)              AS average_score,
-                ROUND(low_performance_share_pct, 1)  AS low_perf_pct,
-                schools_covered
-            FROM performance_by_subject_grade
+                ROUND(MIN(subject_grade_average_score), 2)             AS average_score,
+                ROUND(MIN(subject_grade_low_performance_share_pct), 1) AS low_perf_pct,
+                MIN(subject_grade_schools_covered)                     AS schools_covered
+            FROM gold_school_proficiency
+            GROUP BY subject_name, grade_label, school_cycle
             ORDER BY average_score ASC
             LIMIT 10
         """)
@@ -85,17 +107,20 @@ def _fetch_data() -> dict:
         cursor.execute("""
             SELECT
                 school_name, regional_office_label,
-                ROUND(general_average_score, 2) AS avg_score,
-                ROUND(priority_index, 1)         AS priority_index,
-                priority_band, critical_segments_count,
-                primary_attention_segment
-            FROM school_opportunity_index
-            ORDER BY priority_index DESC
+                ROUND(MAX(general_average_score), 2)  AS avg_score,
+                ROUND(MAX(priority_index), 1)         AS priority_index,
+                MAX(priority_band)                    AS priority_band,
+                MAX(critical_segments_count)          AS critical_segments_count,
+                MAX(primary_attention_segment)        AS primary_attention_segment
+            FROM gold_school_proficiency
+            GROUP BY school_name, regional_office_label
+            ORDER BY MAX(priority_index) DESC
             LIMIT 15
         """)
         top_schools = cursor.fetchall()
 
         return {
+            "kpis": kpis,
             "subject_summary": subject_summary,
             "cycle_summary": cycle_summary,
             "worst_segments": worst_segments,
@@ -115,9 +140,14 @@ def _build_context(data: dict) -> str:
     lines = [
         f"Data: {now.strftime('%d/%m/%Y')} — Mês de referência: {now.strftime('%B de %Y')}",
         "",
+        "=== INDICADORES GERAIS ===",
     ]
 
-    lines += ["=== RESUMO POR MATÉRIA ==="]
+    for kpi in data["kpis"]:
+        unit = kpi.get("metric_unit") or ""
+        lines.append(f"• {kpi['metric_name']}: {kpi['metric_value']} {unit}".rstrip())
+
+    lines += ["", "=== RESUMO POR MATÉRIA ==="]
     for row in data["subject_summary"]:
         lines.append(
             f"• {row['subject_name']}: média={row['overall_avg']}, "
