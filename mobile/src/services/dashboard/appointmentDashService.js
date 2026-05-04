@@ -1,5 +1,6 @@
 import { api } from "../provider/api";
 import { translateAppointmentStatus, translateSubject } from '../../utils/tradutionUtils';
+import { parseUtcDateTime } from '../../utils/date';
 
 export const appointmentDashService = {
     async fetchDashboard() {
@@ -46,20 +47,17 @@ export const appointmentDashService = {
         return (data.table || []).map(item => {
             const dateStr = item.date || '';
             const timeStr = item.time || '';
+            const dateTimeValue = item.dateTime || (dateStr && timeStr ? `${dateStr}T${timeStr}` : null);
+            const dt = parseUtcDateTime(dateTimeValue);
             let formattedDate = dateStr;
             let formattedTime = timeStr;
 
-            if (dateStr.includes('-')) {
+            if (dt) {
+                formattedDate = dt.toLocaleDateString('pt-BR');
+                formattedTime = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            } else if (dateStr.includes('-')) {
                 const [y, m, d] = dateStr.split('-');
                 formattedDate = `${d}/${m}/${y}`;
-            }
-
-            if (timeStr && item.duration) {
-                const [hour, minute] = timeStr.split(':').map(Number);
-                const startDate = new Date(2026, 0, 1, hour, minute);
-                const endDate = new Date(startDate.getTime() + item.duration * 60000);
-                const pad = n => n.toString().padStart(2, '0');
-                formattedTime = `${pad(hour)}:${pad(minute)}:${pad(0)}`;
             }
 
             return {
@@ -68,6 +66,7 @@ export const appointmentDashService = {
                 subject: item.subject || '',
                 date: formattedDate,
                 time: formattedTime,
+                dateTime: dt ? dt.toISOString() : dateTimeValue,
                 duration: item.duration,
                 location: item.location,
                 status: item.status,

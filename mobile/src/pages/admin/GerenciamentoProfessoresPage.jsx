@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import { Input } from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
@@ -9,6 +10,7 @@ import { translateSubject, subjectNamesPt } from '../../utils/tradutionUtils';
 import { UserPlus, Edit2, Trash2, RefreshCw, Copy, ChevronDown } from 'lucide-react-native';
 
 export default function GerenciamentoProfessoresPage() {
+    const navigation = useNavigation();
     const [professores, setProfessores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -28,13 +30,9 @@ export default function GerenciamentoProfessoresPage() {
 
     const subjectOptions = Object.entries(subjectNamesPt).map(([key, label]) => ({ key, label }));
 
-    useEffect(() => {
-        load();
-    }, []);
-
     const ADMIN_EMAIL = 'admin@exemplo.com';
 
-    const load = async () => {
+    const load = useCallback(async () => {
         setLoading(true);
         try {
             const data = await teacherManagerService.list();
@@ -45,7 +43,17 @@ export default function GerenciamentoProfessoresPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        load();
+    }, [load]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('adminRefresh', load);
+        return unsubscribe;
+    }, [navigation, load]);
+
 
     const generatePassword = () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';

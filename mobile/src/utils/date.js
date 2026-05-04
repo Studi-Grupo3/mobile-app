@@ -29,3 +29,15 @@ export function parseDurationToMinutes(str) {
 
     return hours * 60 + minutes;
 }
+
+export function parseUtcDateTime(value) {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    const raw = String(value).trim();
+    if (!raw) return null;
+    const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(raw);
+    const normalized = hasTimezone ? raw : `${raw}Z`;
+    const dt = new Date(normalized);
+    if (Number.isNaN(dt.getTime())) return null;
+    return dt;
+}

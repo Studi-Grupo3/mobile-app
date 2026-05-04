@@ -15,6 +15,15 @@ const subjectMap = {
     PHYSICS: "Física",
 };
 
+const ADMIN_EMAIL = 'admin@exemplo.com';
+const ADMIN_NAME = 'admin';
+
+const isAdminTeacher = (prof) => {
+    const email = String(prof?.email || prof?.user?.email || '').toLowerCase();
+    const name = String(prof?.name || prof?.fullName || '').trim().toLowerCase();
+    return email === ADMIN_EMAIL || name === ADMIN_NAME;
+};
+
 export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [professors, setProfessors] = useState([]);
@@ -55,7 +64,8 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
             "SCIENCE", "PHYSICS", "CHEMISTRY",
         ];
 
-        const enriched = list.map((prof) => {
+        const safeList = Array.isArray(list) ? list : [];
+        const enriched = safeList.filter((prof) => !isAdminTeacher(prof)).map((prof) => {
             const subjectsArray = Array.isArray(prof.subjects) ? prof.subjects : [];
             const translatedSubjects = subjectsArray
                 .filter((s) => allowedSubjects.includes(s))
@@ -178,7 +188,7 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
                         ))}
                     </View>
 
-                    <Text style={styles.profDesc} numberOfLines={3}>
+                    <Text style={styles.profDesc} numberOfLines={2}>
                         {currentProf.description}
                     </Text>
 
@@ -226,11 +236,11 @@ const styles = StyleSheet.create({
         marginLeft: 6,
     },
     container: {
-        paddingVertical: 16,
+        paddingVertical: 12,
         alignItems: 'center',
     },
     card: {
-        width: Dimensions.get('window').width - 64,
+        width: Dimensions.get('window').width - 80,
         backgroundColor: 'white',
         borderRadius: 14,
         shadowColor: "#3970B7",
@@ -245,26 +255,26 @@ const styles = StyleSheet.create({
     },
     avatarSection: {
         backgroundColor: '#3970B7',
-        paddingVertical: 18,
+        paddingVertical: 12,
         alignItems: 'center',
     },
     avatarCircle: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
+        width: 58,
+        height: 58,
+        borderRadius: 29,
         backgroundColor: '#FECB0A',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: '#FFF',
     },
     avatarImage: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
+        width: 52,
+        height: 52,
+        borderRadius: 26,
     },
     avatarInitial: {
-        fontSize: 32,
+        fontSize: 26,
         fontWeight: '700',
         color: '#3970B7',
     },
@@ -288,10 +298,10 @@ const styles = StyleSheet.create({
         right: 8,
     },
     detailsContainer: {
-        padding: 14,
+        padding: 12,
     },
     profName: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '700',
         color: '#1E293B',
         textAlign: 'center',
@@ -300,7 +310,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 8,
+        marginTop: 6,
         backgroundColor: '#EFF6FF',
         paddingHorizontal: 12,
         paddingVertical: 4,
@@ -318,36 +328,36 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         justifyContent: 'center',
         gap: 6,
-        marginTop: 12,
+        marginTop: 8,
     },
     subjectBadge: {
         backgroundColor: '#FEF9C3',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
         borderRadius: 10,
     },
     subjectBadgeText: {
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: '600',
         color: '#854D0E',
     },
     profDesc: {
         color: '#64748B',
-        fontSize: 13,
-        marginTop: 12,
+        fontSize: 12,
+        marginTop: 8,
         textAlign: 'center',
-        lineHeight: 19,
+        lineHeight: 18,
     },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 8,
+        marginTop: 6,
     },
     chooseButton: {
         width: '100%',
-        paddingVertical: 12,
-        marginTop: 12,
+        paddingVertical: 10,
+        marginTop: 10,
         borderRadius: 10,
         backgroundColor: '#FECB0A',
         alignItems: 'center',
@@ -355,7 +365,7 @@ const styles = StyleSheet.create({
     chooseButtonText: {
         color: '#1E293B',
         fontWeight: '700',
-        fontSize: 15,
+        fontSize: 14,
     },
     paginationText: {
         textAlign: 'center',

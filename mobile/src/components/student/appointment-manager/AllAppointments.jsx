@@ -11,6 +11,7 @@ import {
     translateSubject,
     translateProfessorTitle
 } from "../../../utils/tradutionUtils";
+import { parseUtcDateTime } from "../../../utils/date";
 
 export const AllAppointments = ({ filter = "ALL" }) => {
     const [appointments, setAppointments] = useState([]);
@@ -60,7 +61,8 @@ export const AllAppointments = ({ filter = "ALL" }) => {
         const IMAGE_SOURCE_CONFIG = { useMock: true };
 
         return appointments.map(appt => {
-            const dt = new Date(appt.dateTime);
+            const dateTimeValue = appt.dateTime || (appt.date && appt.time ? `${appt.date}T${appt.time}` : null);
+            const dt = parseUtcDateTime(dateTimeValue);
             let finalProfessorImage = appt.professorImageUrl;
 
             // Only use backend URL if it's a valid http(s) URL
@@ -75,12 +77,12 @@ export const AllAppointments = ({ filter = "ALL" }) => {
             return {
                 ...appt,
                 professorImageUrl: finalProfessorImage,
-                displayDate: dt.toLocaleDateString("pt-BR", {
+                displayDate: dt ? dt.toLocaleDateString("pt-BR", {
                     weekday: "long", day: "numeric", month: "long"
-                }),
-                displayTime: dt.toLocaleTimeString("pt-BR", {
+                }) : '-',
+                displayTime: dt ? dt.toLocaleTimeString("pt-BR", {
                     hour: "2-digit", minute: "2-digit"
-                }),
+                }) : '-',
                 displaySubject: translateSubject(appt.subject),
                 displayProfTitle: translateProfessorTitle(appt.professorTitle)
             };
