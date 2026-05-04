@@ -7,7 +7,7 @@ export const ScheduleButton = () => {
     const navigation = useNavigation();
 
     const handleClick = () => {
-        navigation.navigate('AgendarAula');
+        navigation.navigate('AgendarTab');
     };
 
     return (

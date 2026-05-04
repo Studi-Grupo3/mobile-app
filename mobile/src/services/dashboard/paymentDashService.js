@@ -21,15 +21,17 @@ export const paymentDashService = {
 
     async getRecent(month, year) {
         const { recent } = await this.fetchDashboard(month, year);
-        return recent.map(item => ({
-            id: item.id,
-            name: item.name,
-            subject: translateSubject(item.subject),
-            valuePerHour: item.valuePerHour,
-            hours: item.hours,
-            total: item.total,
-            status: translatePaymentStatus(item.status)
-        }));
+        return recent
+            .filter(item => item.name !== 'Admin')
+            .map(item => ({
+                id: item.id,
+                name: item.name,
+                subject: item.subject,
+                valuePerHour: item.valuePerHour,
+                hours: item.hours,
+                total: item.total,
+                status: item.status
+            }));
     },
 
     async toggleStatus(id, month, year) {

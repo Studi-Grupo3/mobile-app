@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { ContentTeacherRegistration } from '../../components/teacher/registration/ContentTeacherRegistration';
 import { teacherService } from '../../services/teacherService';
 import { User, GraduationCap, Image as ImageIcon, Clock } from 'lucide-react-native';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
 export default function CompleteTeacherRegistrationPage() {
     const [activeTab, setActiveTab] = useState('Informacoes Pessoais');
     const [percentComplete, setPercentComplete] = useState(0);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
     const [formData, setFormData] = useState({
         id: null,
         name: "",
@@ -24,7 +27,7 @@ export default function CompleteTeacherRegistrationPage() {
     };
 
     const handleSave = async () => {
-        Alert.alert("Sucesso", "Perfil atualizado!");
+        showAlert('success', 'Sucesso', 'Perfil atualizado!');
     };
 
     const tabs = [
@@ -69,7 +72,7 @@ export default function CompleteTeacherRegistrationPage() {
                     ))}
                 </View>
 
-                <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
                     <ContentTeacherRegistration
                         current={activeTab}
                         formData={formData}
@@ -79,6 +82,7 @@ export default function CompleteTeacherRegistrationPage() {
                     />
                 </ScrollView>
             </View>
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }

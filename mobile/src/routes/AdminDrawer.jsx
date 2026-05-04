@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { Home, Users, Calendar, Settings, DollarSign, UserPlus, LogOut } from 'lucide-react-native';
 import { AuthContext } from '../context/authContext';
+import { AlertModal } from '../components/ui/AlertModal';
 
 import VisaoGeralPage from '../pages/admin/VisaoGeralPage';
 import AgendamentosPage from '../pages/admin/AgendamentosPage';
@@ -15,18 +16,10 @@ const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
     const { logout } = useContext(AuthContext);
+    const [logoutAlert, setLogoutAlert] = useState(false);
 
     const handleLogout = () => {
-        Alert.alert('Sair', 'Deseja realmente sair da conta?', [
-            { text: 'Cancelar', style: 'cancel' },
-            {
-                text: 'Sair',
-                style: 'destructive',
-                onPress: async () => {
-                    await logout();
-                },
-            },
-        ]);
+        setLogoutAlert(true);
     };
 
     return (
@@ -38,6 +31,17 @@ function CustomDrawerContent(props) {
                 <LogOut size={20} color="#EF4444" />
                 <Text style={drawerStyles.logoutText}>Sair da conta</Text>
             </TouchableOpacity>
+            <AlertModal
+                visible={logoutAlert}
+                type="warning"
+                title="Sair"
+                message="Deseja realmente sair da conta?"
+                onClose={() => setLogoutAlert(false)}
+                buttons={[
+                    { text: 'Cancelar', style: 'cancel', onPress: () => setLogoutAlert(false) },
+                    { text: 'Sair', style: 'destructive', onPress: async () => { setLogoutAlert(false); await logout(); } },
+                ]}
+            />
         </View>
     );
 }
@@ -106,7 +110,7 @@ export function AdminDrawer() {
                 component={ProfessoresPage}
                 options={{
                     drawerIcon: ({ color, size }) => <Users color={color} size={size} />,
-                    drawerLabel: 'Professores (Stats)',
+                    drawerLabel: 'Professores',
                     title: 'Professores'
                 }}
             />

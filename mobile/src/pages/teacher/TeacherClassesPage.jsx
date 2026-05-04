@@ -4,8 +4,9 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { mockTeacherService } from '../../mocks/mockServices';
+import { teacherService } from '../../services/teacherService';
 import { translateSubject } from '../../utils/tradutionUtils';
+import { getStudentImage } from '../../mocks/mockImages';
 import { TeacherAppointmentCard } from '../../components/teacher/TeacherAppointmentCard';
 import { AppointmentModal } from '../../components/common/AppointmentModal';
 import { InfoCard } from '../../components/common/InfoCard';
@@ -35,7 +36,7 @@ export default function TeacherClassesPage() {
     /* ---- fetch helpers ---- */
     const fetchUpcoming = useCallback(() => {
         setLoadingUpcoming(true);
-        mockTeacherService.getProximasAulas()
+        teacherService.getProximasAulas()
             .then(d => setUpcoming(Array.isArray(d) ? d : []))
             .catch(() => setUpcoming([]))
             .finally(() => setLoadingUpcoming(false));
@@ -43,14 +44,14 @@ export default function TeacherClassesPage() {
 
     const fetchHistory = useCallback(() => {
         setLoadingHistory(true);
-        mockTeacherService.getLessonsHistory()
+        teacherService.getLessonsHistory()
             .then(d => setHistory(Array.isArray(d) ? d : []))
             .catch(() => setHistory([]))
             .finally(() => setLoadingHistory(false));
     }, []);
 
     useEffect(() => {
-        mockTeacherService.getStats()
+        teacherService.getStats()
             .then(setStats)
             .catch(() => setStats(null))
             .finally(() => setLoadingStats(false));
@@ -59,16 +60,24 @@ export default function TeacherClassesPage() {
         fetchHistory();
     }, []);
 
+    const IMAGE_SOURCE_CONFIG = { useMock: true };
+
+    const resolveStudentImage = (imageUrl, studentName) => {
+        if (imageUrl && imageUrl.startsWith('http')) return imageUrl;
+        if (IMAGE_SOURCE_CONFIG.useMock) return getStudentImage(studentName);
+        return null;
+    };
+
     /* ---- modal ---- */
     const handleDetails = (l) => {
         setSelectedLesson({
             ...l,
             professorName: l.studentName,
             professorTitle: 'Aluno',
-            professorImageUrl: null,
-            subject: l.subject,
+            professorImageUrl: resolveStudentImage(l.studentImageUrl, l.studentName),
+            subject: l.subject || l.disciplina,
             dateTime: `${l.date}T${l.time}`,
-            duration: l.duration,
+            duration: l.lessonDuration ?? l.duration,
         });
         setOpenModal(true);
     };
@@ -80,16 +89,16 @@ export default function TeacherClassesPage() {
         return upcoming.map(l => (
             <View key={l.id} style={styles.lessonItem}>
                 <TeacherAppointmentCard
-                    subject={translateSubject(l.subject)}
+                    subject={translateSubject(l.subject || l.disciplina)}
                     studentName={l.studentName}
                     studentPhone={null}
-                    studentImageUrl={null}
+                    studentImageUrl={resolveStudentImage(l.studentImageUrl, l.studentName)}
                     date={new Date(l.date + 'T' + l.time).toLocaleDateString('pt-BR')}
                     time={l.time}
-                    duration={`${l.duration}min`}
-                    location={l.modality === 'ONLINE' ? 'Online' : 'Presencial'}
+                    duration={`${l.lessonDuration ?? l.duration} min`}
+                    location={l.online || l.location?.toLowerCase() === 'online' ? 'Online' : 'Presencial'}
                     status={l.status}
-                    online={l.modality === 'ONLINE'}
+                    online={l.online || l.location?.toLowerCase() === 'online'}
                     onDetailsClick={() => handleDetails(l)}
                 />
             </View>
@@ -102,16 +111,16 @@ export default function TeacherClassesPage() {
         return history.map(l => (
             <View key={l.id} style={styles.lessonItem}>
                 <TeacherAppointmentCard
-                    subject={translateSubject(l.subject)}
+                    subject={translateSubject(l.subject || l.disciplina)}
                     studentName={l.studentName}
                     studentPhone={null}
-                    studentImageUrl={null}
+                    studentImageUrl={resolveStudentImage(l.studentImageUrl, l.studentName)}
                     date={new Date(l.date + 'T' + l.time).toLocaleDateString('pt-BR')}
                     time={l.time}
-                    duration={`${l.duration}min`}
-                    location={l.modality === 'ONLINE' ? 'Online' : 'Presencial'}
+                    duration={`${l.duration ?? l.lessonDuration} min`}
+                    location={l.online || l.location?.toLowerCase() === 'online' ? 'Online' : 'Presencial'}
                     status={l.status}
-                    online={l.modality === 'ONLINE'}
+                    online={l.online || l.location?.toLowerCase() === 'online'}
                     onDetailsClick={() => handleDetails(l)}
                 />
             </View>

@@ -4,34 +4,27 @@ import { tryMockLogin } from '../mocks/mockCredentials';
 
 export const authService = {
     login: async (credentials) => {
+        let response;
         try {
-            // Try real backend first
-            const response = await api
+            response = await api
                 .post('/auths/login', credentials)
                 .then(res => res.data);
-
-            if (response.token) {
-                await AsyncStorage.setItem('authToken', response.token);
-                await AsyncStorage.setItem('userId', String(response.id));
-                await AsyncStorage.setItem('userRole', response.role);
-                await AsyncStorage.setItem('userEmail', response.email);
-            }
-
-            return response;
-        } catch (backendError) {
-            // If backend fails, try mock credentials as fallback
-            console.log('Backend unavailable, trying mock login...');
-            const mockResponse = tryMockLogin(credentials.email, credentials.password);
-            if (mockResponse) {
-                await AsyncStorage.setItem('authToken', mockResponse.token);
-                await AsyncStorage.setItem('userId', String(mockResponse.id));
-                await AsyncStorage.setItem('userRole', mockResponse.role);
-                await AsyncStorage.setItem('userEmail', mockResponse.email);
-                return mockResponse;
-            }
-            // If mock also doesn't match, throw original error
-            throw backendError;
+        } catch (err) {
+            // Backend unavailable — try mock credentials
+            const mock = tryMockLogin(credentials.email, credentials.password);
+            if (!mock) throw new Error('Invalid credentials');
+            response = mock;
         }
+
+        if (response.token) {
+            await AsyncStorage.setItem('authToken', response.token);
+            await AsyncStorage.setItem('userId', String(response.id));
+            await AsyncStorage.setItem('userRole', response.role);
+            await AsyncStorage.setItem('userEmail', response.email);
+            await AsyncStorage.setItem('userName', response.name || '');
+        }
+
+        return response;
     },
 
     logout: async () => {
@@ -44,27 +37,12 @@ export const authService = {
     getUserEmail: () => AsyncStorage.getItem('userEmail'),
 
     forgotPassword: async (data) => {
-        try {
-            return await api.post('/auths/forgot-password', data);
-        } catch {
-            console.log('Mock: forgotPassword success');
-            return { success: true };
-        }
+        return await api.post('/auths/forgot-password', data);
     },
     verifyCode: async (data) => {
-        try {
-            return await api.post('/auths/verify-code', data);
-        } catch {
-            console.log('Mock: verifyCode success');
-            return { success: true };
-        }
+        return await api.post('/auths/verify-code', data);
     },
     resetPassword: async ({ email, newPassword }) => {
-        try {
-            return await api.patch('/students/reset-password', { email, newPassword });
-        } catch {
-            console.log('Mock: resetPassword success');
-            return { success: true };
-        }
+        return await api.patch('/students/reset-password', { email, newPassword });
     }
 };

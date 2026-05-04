@@ -7,57 +7,9 @@ import {
     CreditCard, Clock, CheckCircle, XCircle, ChevronRight,
     DollarSign, Calendar, Filter
 } from 'lucide-react-native';
-
-const mockPayments = [
-    {
-        id: 1,
-        description: 'Aula de Matemática',
-        teacher: 'Prof. Ana Silva',
-        date: '2025-02-10',
-        amount: 120.00,
-        status: 'PAID',
-    },
-    {
-        id: 2,
-        description: 'Aula de Português',
-        teacher: 'Prof. Carlos Santos',
-        date: '2025-02-08',
-        amount: 100.00,
-        status: 'PAID',
-    },
-    {
-        id: 3,
-        description: 'Aula de Física',
-        teacher: 'Prof. Maria Costa',
-        date: '2025-02-05',
-        amount: 130.00,
-        status: 'PENDING',
-    },
-    {
-        id: 4,
-        description: 'Aula de Química',
-        teacher: 'Prof. João Oliveira',
-        date: '2025-01-28',
-        amount: 110.00,
-        status: 'PAID',
-    },
-    {
-        id: 5,
-        description: 'Aula de História',
-        teacher: 'Prof. Ana Silva',
-        date: '2025-01-25',
-        amount: 100.00,
-        status: 'CANCELLED',
-    },
-    {
-        id: 6,
-        description: 'Aula de Geografia',
-        teacher: 'Prof. Carlos Santos',
-        date: '2025-01-20',
-        amount: 120.00,
-        status: 'PAID',
-    },
-];
+import { appointmentService } from '../../services/appointmentService';
+import { authService } from '../../services/authService';
+import { translateSubject } from '../../utils/tradutionUtils';
 
 const statusConfig = {
     PAID: { label: 'Pago', color: '#10B981', bg: '#ECFDF5', icon: CheckCircle },
@@ -72,12 +24,27 @@ export default function StudentPaymentsPage() {
     const insets = useSafeAreaInsets();
 
     useEffect(() => {
-        // Simulate loading
-        const timer = setTimeout(() => {
-            setPayments(mockPayments);
-            setLoading(false);
-        }, 600);
-        return () => clearTimeout(timer);
+        const fetchPayments = async () => {
+            try {
+                const studentId = await authService.getUserId();
+                const appointments = await appointmentService.getByStudentId(studentId);
+                const mapped = (appointments || []).map(a => ({
+                    id: a.id,
+                    description: `Aula de ${translateSubject(a.subject) || a.subject}`,
+                    teacher: a.teacherName || a.teacher?.name || 'Professor',
+                    date: a.dateTime ? a.dateTime.split('T')[0] : '',
+                    amount: a.totalValue || 0,
+                    status: a.paymentStatus || 'PENDING',
+                }));
+                setPayments(mapped);
+            } catch (err) {
+                console.warn('StudentPaymentsPage: erro ao buscar pagamentos', err.message);
+                setPayments([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPayments();
     }, []);
 
     const filtered = activeFilter === 'ALL'

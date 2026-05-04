@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView } from 'react-native';
-import { BarChart, LineChart } from 'react-native-chart-kit';
+import { LineChart } from 'react-native-chart-kit';
 
 const DIST_COLORS = [
     '#3970B7', '#FECB0A', '#34D399', '#F87171',
     '#A78BFA', '#FB923C', '#38BDF8', '#E879F9',
+    '#10B981', '#EF4444', '#6366F1', '#F59E0B',
+    '#14B8A6', '#EC4899',
 ];
 
 export function GraphCard({ title, data = [], type = 'bar', options = {}, color }) {
@@ -50,7 +52,6 @@ export function GraphCard({ title, data = [], type = 'bar', options = {}, color 
         decimalPlaces: 0,
         color: (opacity = 1) => color || `rgba(57, 112, 183, ${opacity})`,
         labelColor: () => '#6B7280',
-        barPercentage: manyLabels ? 0.4 : 0.6,
         style: { borderRadius: 12 },
         propsForBackgroundLines: {
             strokeDasharray: '',
@@ -63,21 +64,62 @@ export function GraphCard({ title, data = [], type = 'bar', options = {}, color 
         labels: displayLabels,
         datasets: [{
             data: values,
-            color: (opacity = 1) => color || `rgba(57, 112, 183, ${opacity})`,
             strokeWidth: 2,
         }],
     };
 
-    const barWidth = manyLabels ? Math.max(cardWidth, labels.length * 42) : cardWidth;
+    // --- Custom Bar Chart (works on web) ---
+    const renderBarChart = () => {
+        const maxValue = Math.max(...values, 1);
+        const barColor = color || '#3970B7';
+        const chartHeight = 180;
+        return (
+            <View style={{ width: '100%' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: chartHeight, paddingHorizontal: 4 }}>
+                    {values.map((val, i) => {
+                        const barHeight = maxValue > 0 ? (val / maxValue) * (chartHeight - 30) : 0;
+                        return (
+                            <View key={i} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
+                                <Text style={{ fontSize: 11, fontWeight: '600', color: '#374151', marginBottom: 4 }}>
+                                    {Math.round(val)}
+                                </Text>
+                                <View style={{
+                                    width: '60%',
+                                    height: Math.max(barHeight, 4),
+                                    backgroundColor: barColor,
+                                    borderTopLeftRadius: 4,
+                                    borderTopRightRadius: 4,
+                                }} />
+                            </View>
+                        );
+                    })}
+                </View>
+                <View style={{ flexDirection: 'row', paddingHorizontal: 4, marginTop: 8 }}>
+                    {displayLabels.map((lbl, i) => (
+                        <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 10, color: '#6B7280', textAlign: 'center' }} numberOfLines={1}>
+                                {lbl}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+        );
+    };
 
     // --- Distribution chart (replaces pie) ---
     const renderDistribution = () => {
-        const total = values.reduce((a, b) => a + b, 0);
+        // Sort by value descending
+        const indexed = values.map((v, i) => ({ label: labels[i], value: v, i }));
+        indexed.sort((a, b) => b.value - a.value);
+        const sortedLabels = indexed.map(x => x.label);
+        const sortedValues = indexed.map(x => x.value);
+        const total = sortedValues.reduce((a, b) => a + b, 0);
         return (
             <View style={styles.distributionContainer}>
                 {/* Stacked bar */}
                 <View style={styles.stackedBar}>
-                    {values.map((val, i) => {
+                    {sortedValues.map((val, i) => {
                         const pct = total > 0 ? (val / total) * 100 : 0;
                         if (pct < 1) return null;
                         return (
@@ -89,16 +131,16 @@ export function GraphCard({ title, data = [], type = 'bar', options = {}, color 
                                     height: 14,
                                     borderTopLeftRadius: i === 0 ? 7 : 0,
                                     borderBottomLeftRadius: i === 0 ? 7 : 0,
-                                    borderTopRightRadius: i === values.length - 1 ? 7 : 0,
-                                    borderBottomRightRadius: i === values.length - 1 ? 7 : 0,
+                                    borderTopRightRadius: i === sortedValues.length - 1 ? 7 : 0,
+                                    borderBottomRightRadius: i === sortedValues.length - 1 ? 7 : 0,
                                 }}
                             />
                         );
                     })}
                 </View>
                 {/* Legend items */}
-                {labels.map((label, i) => {
-                    const pct = total > 0 ? ((values[i] / total) * 100).toFixed(1) : '0';
+                {sortedLabels.map((label, i) => {
+                    const pct = total > 0 ? ((sortedValues[i] / total) * 100).toFixed(1) : '0';
                     return (
                         <View key={i} style={styles.distRow}>
                             <View style={styles.distLeft}>
@@ -106,7 +148,6 @@ export function GraphCard({ title, data = [], type = 'bar', options = {}, color 
                                 <Text style={styles.distLabel} numberOfLines={1}>{label}</Text>
                             </View>
                             <View style={styles.distRight}>
-                                <Text style={styles.distValue}>{values[i]}</Text>
                                 <Text style={styles.distPct}>{pct}%</Text>
                             </View>
                         </View>
@@ -121,35 +162,7 @@ export function GraphCard({ title, data = [], type = 'bar', options = {}, color 
             <Text style={styles.title}>{title}</Text>
 
             <View style={styles.chartContainer}>
-                {chartType === 'bar' && (
-                    manyLabels ? (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            <BarChart
-                                data={chartData}
-                                width={barWidth}
-                                height={220}
-                                yAxisLabel=""
-                                chartConfig={chartConfig}
-                                verticalLabelRotation={45}
-                                fromZero
-                                showValuesOnTopOfBars
-                                style={styles.chart}
-                            />
-                        </ScrollView>
-                    ) : (
-                        <BarChart
-                            data={chartData}
-                            width={cardWidth}
-                            height={220}
-                            yAxisLabel=""
-                            chartConfig={chartConfig}
-                            verticalLabelRotation={0}
-                            fromZero
-                            showValuesOnTopOfBars
-                            style={styles.chart}
-                        />
-                    )
-                )}
+                {chartType === 'bar' && renderBarChart()}
 
                 {chartType === 'line' && (
                     <LineChart
@@ -193,6 +206,7 @@ const styles = StyleSheet.create({
     },
     chart: {
         borderRadius: 8,
+        marginLeft: -16,
     },
     emptyContainer: {
         height: 120,

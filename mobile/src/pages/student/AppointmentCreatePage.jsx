@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft } from 'lucide-react-native';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
 // Import Wizard Steps
 import ClassDetailsForm from '../../components/student/appointment-create/ClassDetailsForm';
@@ -22,6 +24,7 @@ const steps = [
 export default function AppointmentCreatePage() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
+    const { alertConfig, showAlert, hideAlert } = useAlert();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
         phase: "",
@@ -47,9 +50,8 @@ export default function AppointmentCreatePage() {
         if (currentStep < steps.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {
-            // Finish
-            Alert.alert("Sucesso", "Agendamento realizado!", [
-                { text: "OK", onPress: () => navigation.navigate('Dashboard') }
+            showAlert('success', 'Sucesso', 'Agendamento realizado!', [
+                { text: 'OK', onPress: () => { hideAlert(); navigation.navigate('Dashboard'); } }
             ]);
         }
     };
@@ -108,6 +110,7 @@ export default function AppointmentCreatePage() {
                     onNext={goNext}
                 />
             </ScrollView>
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }

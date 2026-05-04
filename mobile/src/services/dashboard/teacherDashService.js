@@ -1,5 +1,5 @@
 import { api } from '../provider/api';
-import { translateSubject, translateTeacherStatus } from '../../utils/tradutionUtils';
+import { translateSubject } from '../../utils/tradutionUtils';
 
 export const teacherDashService = {
     async fetchDashboard() {
@@ -20,40 +20,13 @@ export const teacherDashService = {
 
     async getCharts() {
         const data = await this.fetchDashboard();
-        const subjectCounts = {};
-        const teachers = data.teacherTableValues || [];
 
-        teachers.forEach(teacher => {
-            let subjects = [];
-            let rawSubject = teacher.subjects || teacher.subject;
-
-            if (Array.isArray(rawSubject)) {
-                subjects = rawSubject;
-            } else if (typeof rawSubject === 'string') {
-                subjects = rawSubject.split(',').map(s => s.trim());
-            }
-
-            subjects.forEach(sub => {
-                const translated = translateSubject(sub);
-                subjectCounts[translated] = (subjectCounts[translated] || 0) + 1;
-            });
-        });
-
-        const totalSubjects = Object.values(subjectCounts).reduce((a, b) => a + b, 0);
-        const subjectChartData = Object.entries(subjectCounts).map(([label, count]) => ({
-            label,
-            value: totalSubjects > 0 ? (count / totalSubjects) * 100 : 0
+        const subjectChartData = (data.subjectChartValues || []).map(item => ({
+            label: translateSubject(item.label),
+            value: item.percentage
         }));
 
         return [
-            {
-                type: 'bar',
-                title: 'Top 5 Professores (Horas Trabalhadas)',
-                data: (data.topTeachers || []).map(p => ({
-                    label: p.label,
-                    value: p.value
-                }))
-            },
             {
                 type: 'pie',
                 title: 'Distribuição por Disciplina',
@@ -64,15 +37,23 @@ export const teacherDashService = {
 
     async getPayments() {
         const data = await this.fetchDashboard();
-        return (data.teacherTableValues || []).map(item => {
-            let rawSubject = item.subjects || item.subject;
-
+        return (data.teacherTableValues || [])
+            .filter(item => item.name !== 'Admin')
+            .map(item => {
+            const rawSubject = item.subjects || item.subject;
+            const rawRate = item.hourlyRate;
+            let numericRate = 0;
+            if (typeof rawRate === 'number') {
+                numericRate = rawRate;
+            } else if (typeof rawRate === 'string') {
+                numericRate = parseFloat(rawRate.replace(/[R$\s]/g, '').replace(',', '.')) || 0;
+            }
             return {
                 name: item.name,
                 subject: rawSubject,
                 hours: item.hoursWorked,
-                value: item.hourlyRate,
-                status: translateTeacherStatus(item.status),
+                value: numericRate,
+                status: item.status,
                 actions: '…'
             };
         });

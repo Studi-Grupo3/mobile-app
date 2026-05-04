@@ -1,14 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from "react-native";
 import { BookOpen, Clock, Calendar, CreditCard, CheckCircle } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
 import { appointmentCreateService } from "../../../services/appointmentCreateService";
 import { parseDurationToMinutes } from "../../../utils/date";
+import Constants from 'expo-constants';
+import { AlertModal } from "../../ui/AlertModal";
+import { useAlert } from "../../../hooks/useAlert";
 
-// ══════ BYPASS: set to true to skip real API & payment ══════
-const BYPASS_API = true;
+// ══════ MOCK MODE: reads from app.json extra.PAYMENT_MOCK ══════
+const PAYMENT_MOCK = Constants.expoConfig?.extra?.PAYMENT_MOCK === 'true' || Constants.expoConfig?.extra?.PAYMENT_MOCK === true;
 // ═════════════════════════════════════════════════════════════
 
-export default function Payment({ data, onUpdate, onNext, navigation }) {
+export default function Payment({ data, onUpdate, onNext }) {
+    const navigation = useNavigation();
     const [step, setStep] = useState("endereco");
     const [paymentMethod, setPaymentMethod] = useState(data.pagamento.method || "credito");
     const [cep, setCep] = useState(data.endereco.cep || "");
@@ -16,6 +21,7 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
     const [loading, setLoading] = useState(false);
     const [couponCode, setCouponCode] = useState(data.pagamento.cupom || "");
     const [errorMsg, setErrorMsg] = useState("");
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const lessonDurationLocal = parseDurationToMinutes(data.duration || "");
     const totalValueLocal = lessonDurationLocal * 1;
@@ -39,10 +45,10 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
                     setEndereco(newAddr);
                     onUpdate({ endereco: newAddr });
                 } else {
-                    Alert.alert("Erro", "CEP não encontrado.");
+                    showAlert('error', 'Erro', 'CEP não encontrado.');
                 }
             } catch {
-                Alert.alert("Erro", "Erro ao buscar CEP.");
+                showAlert('error', 'Erro', 'Erro ao buscar CEP.');
             }
         } else {
             onUpdate({ endereco: { ...endereco, cep: onlyDigits } });
@@ -64,7 +70,7 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
     const handleApplyCoupon = () => {
         if (couponCode) {
             onUpdate({ pagamento: { ...data.pagamento, cupom: couponCode, descontoAplicado: true, desconto: 0 } });
-            Alert.alert("Cupom", "Cupom aplicado (Simulação)");
+            showAlert('info', 'Cupom', 'Cupom aplicado (Simulação)');
         }
     };
 
@@ -72,33 +78,24 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
         setErrorMsg("");
         setLoading(true);
         try {
-            if (BYPASS_API) {
-                // Mock mode: simulate successful scheduling
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                Alert.alert(
-                    "✅ Agendamento Realizado!",
-                    `Aula de ${data.subject || 'matéria'} agendada com sucesso!\n\nData: ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : '—'}\nHorário: ${data.time || '—'}\nValor: R$ ${totalValueLocal.toFixed(2).replace(".", ",")}`,
-                    [{ text: "OK" }]
-                );
-            } else {
-                const lessonDuration = parseDurationToMinutes(data.duration || "");
-                const ratePerMinute = 1;
-                const totalValue = lessonDuration * ratePerMinute;
+            const lessonDuration = parseDurationToMinutes(data.duration || "");
+            const ratePerMinute = 1;
+            const totalValue = lessonDuration * ratePerMinute;
 
-                await appointmentCreateService.create({
-                    ...data,
-                    pagamento: {
-                        ...data.pagamento,
-                        lessonDuration,
-                        totalValue,
-                        method: paymentMethod,
-                    },
-                });
+            // Always create the appointment via backend
+            await appointmentCreateService.create({
+                ...data,
+                pagamento: {
+                    ...data.pagamento,
+                    lessonDuration,
+                    totalValue,
+                    method: paymentMethod,
+                },
+            });
 
-                Alert.alert("Sucesso", "Agendamento realizado!", [
-                    { text: "OK" }
-                ]);
-            }
+            showAlert('success', '✅ Agendamento Realizado!', `Aula de ${data.subject || 'matéria'} agendada com sucesso!\n\nData: ${data.date ? new Date(data.date).toLocaleDateString('pt-BR') : '—'}\nHorário: ${data.time || '—'}\nValor: R$ ${totalValue.toFixed(2).replace(".", ",")}`, [
+                { text: 'Ver Agendamentos', onPress: () => { hideAlert(); navigation.navigate('Appointments'); } }
+            ]);
         } catch (err) {
             console.error(err);
             setErrorMsg("Erro ao agendar. Tente novamente.");
@@ -346,6 +343,7 @@ export default function Payment({ data, onUpdate, onNext, navigation }) {
                     </View>
                 </View>
             )}
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </ScrollView>
     );
 }

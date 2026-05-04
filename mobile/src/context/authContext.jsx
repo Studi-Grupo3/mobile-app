@@ -13,9 +13,11 @@ export const AuthProvider = ({ children }) => {
                 const token = await AsyncStorage.getItem('authToken');
                 const userId = await AsyncStorage.getItem('userId');
                 const role = await AsyncStorage.getItem('userRole');
+                const name = await AsyncStorage.getItem('userName');
+                const email = await AsyncStorage.getItem('userEmail');
 
                 if (token && userId && role) {
-                    setUser({ token, userId, role });
+                    setUser({ token, userId, role, name, email });
                 }
             } catch (error) {
                 console.error('Error loading auth state:', error);
@@ -32,6 +34,8 @@ export const AuthProvider = ({ children }) => {
         await AsyncStorage.setItem('authToken', userData.token);
         await AsyncStorage.setItem('userId', String(userData.userId));
         await AsyncStorage.setItem('userRole', userData.role);
+        if (userData.name) await AsyncStorage.setItem('userName', userData.name);
+        if (userData.email) await AsyncStorage.setItem('userEmail', userData.email);
     };
 
     const logout = async () => {

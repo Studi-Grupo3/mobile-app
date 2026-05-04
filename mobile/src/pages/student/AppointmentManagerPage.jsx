@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-    ChevronDown, SlidersHorizontal, X, Check,
+    ChevronDown, SlidersHorizontal, X, Check, RefreshCw,
 } from 'lucide-react-native';
 import { UpcomingAppointments } from '../../components/student/appointment-manager/UpcomingAppointments';
 import { AllAppointments } from '../../components/student/appointment-manager/AllAppointments';
@@ -124,6 +124,7 @@ export default function AppointmentManagerPage() {
     const [subjectFilter, setSubjectFilter] = useState('ALL');
     const [modalityFilter, setModalityFilter] = useState('ALL');
     const [showFilters, setShowFilters] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const tabs = [
         { id: 'upcoming', label: 'Próximas' },
@@ -141,6 +142,10 @@ export default function AppointmentManagerPage() {
         setActiveTab(t);
         resetFilters();
         setShowFilters(false);
+    };
+
+    const handleRefresh = () => {
+        setRefreshKey(k => k + 1);
     };
 
     const activeFilterCount = [statusFilter, subjectFilter, modalityFilter].filter(f => f !== 'ALL').length;
@@ -173,6 +178,10 @@ export default function AppointmentManagerPage() {
                                     <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
                                 </View>
                             )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={handleRefresh} style={styles.refreshBtn} activeOpacity={0.6}>
+                            <RefreshCw size={16} color="#3970B7" />
                         </TouchableOpacity>
 
                         {activeFilterCount > 0 && (
@@ -211,13 +220,13 @@ export default function AppointmentManagerPage() {
                 {/* Content */}
                 <View style={styles.tabContent}>
                     {activeTab === 'upcoming' && (
-                        <UpcomingAppointments filter={compositeFilter} />
+                        <UpcomingAppointments key={refreshKey} filter={compositeFilter} />
                     )}
                     {activeTab === 'past' && (
-                        <AllAppointments filter={compositeFilter} />
+                        <AllAppointments key={refreshKey} filter={compositeFilter} />
                     )}
                     {activeTab === 'calendar' && (
-                        <CalendarView filter={compositeFilter} setActiveTab={setActiveTab} />
+                        <CalendarView key={refreshKey} filter={compositeFilter} setActiveTab={setActiveTab} />
                     )}
                 </View>
             </View>
@@ -333,6 +342,13 @@ const styles = StyleSheet.create({
         gap: 4,
         paddingHorizontal: 10,
         paddingVertical: 6,
+    },
+    refreshBtn: {
+        padding: 8,
+        borderRadius: 8,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
     },
     clearBtnText: {
         fontSize: 12,

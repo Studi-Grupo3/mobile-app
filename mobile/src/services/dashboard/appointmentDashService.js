@@ -1,5 +1,5 @@
 import { api } from "../provider/api";
-import { translateAppointmentStatus } from '../../utils/tradutionUtils';
+import { translateAppointmentStatus, translateSubject } from '../../utils/tradutionUtils';
 
 export const appointmentDashService = {
     async fetchDashboard() {
@@ -21,11 +21,11 @@ export const appointmentDashService = {
         const data = await this.fetchDashboard();
         return [
             {
-                id: "weekly",
+                id: "subjects",
                 type: "bar",
-                title: "Agendamentos por Semana",
+                title: "Aulas por Matéria",
                 data: (data.weeklyChart || []).map(item => ({
-                    label: item.label,
+                    label: translateSubject(item.label),
                     value: item.value
                 }))
             },
@@ -44,22 +44,34 @@ export const appointmentDashService = {
     async getTable() {
         const data = await this.fetchDashboard();
         return (data.table || []).map(item => {
-            const [hour, minute] = item.time.split(":").map(Number);
-            const dateParts = item.date.split("-").map(Number);
-            const startDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hour, minute);
-            const endDate = new Date(startDate.getTime() + item.duration * 60000);
-            const pad = n => n.toString().padStart(2, "0");
-            const formattedDate = `${pad(startDate.getDate())}/${pad(startDate.getMonth() + 1)}/${startDate.getFullYear()}`;
-            const formattedTime = `${pad(startDate.getHours())}:${pad(startDate.getMinutes())} - ${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+            const dateStr = item.date || '';
+            const timeStr = item.time || '';
+            let formattedDate = dateStr;
+            let formattedTime = timeStr;
+
+            if (dateStr.includes('-')) {
+                const [y, m, d] = dateStr.split('-');
+                formattedDate = `${d}/${m}/${y}`;
+            }
+
+            if (timeStr && item.duration) {
+                const [hour, minute] = timeStr.split(':').map(Number);
+                const startDate = new Date(2026, 0, 1, hour, minute);
+                const endDate = new Date(startDate.getTime() + item.duration * 60000);
+                const pad = n => n.toString().padStart(2, '0');
+                formattedTime = `${pad(hour)}:${pad(minute)}:${pad(0)}`;
+            }
 
             return {
                 studentName: item.studentName,
                 teacherName: item.teacherName,
+                subject: item.subject || '',
                 date: formattedDate,
                 time: formattedTime,
+                duration: item.duration,
                 location: item.location,
-                status: translateAppointmentStatus(item.status),
-                actions: "…"
+                status: item.status,
+                actions: '…'
             };
         });
     }

@@ -3,7 +3,7 @@ import { View, ScrollView, Text, ActivityIndicator, StyleSheet } from 'react-nat
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
-import { mockAppointmentDashService as appointmentDashService } from '../../mocks/mockServices';
+import { appointmentDashService } from '../../services/dashboard/appointmentDashService';
 import { Calendar, CheckCircle, Users, Hourglass } from 'lucide-react-native';
 import { translateSubject, translateAppointmentStatus } from '../../utils/tradutionUtils';
 
@@ -41,22 +41,22 @@ export default function AgendamentosPage() {
                 <>
                     <StatCard
                         title={stats.totalAppointments}
-                        subtitle="Total de Agendamentos"
+                        subtitle="Total de Agendamentos no Mês"
                         icon={<Calendar size={20} color="#3970B7" />}
                     />
                     <StatCard
                         title={stats.confirmedCount}
-                        subtitle="Confirmados"
+                        subtitle="Aulas Confirmadas"
                         icon={<CheckCircle size={20} color="#22C55E" />}
                     />
                     <StatCard
                         title={stats.activeStudents}
-                        subtitle="Alunos Ativos"
+                        subtitle="Alunos com Aulas Ativas"
                         icon={<Users size={20} color="#3970B7" />}
                     />
                     <StatCard
                         title={stats.averageDuration ? `${stats.averageDuration.toFixed(0)} min` : '-'}
-                        subtitle="Duração Média"
+                        subtitle="Duração Média por Aula"
                         icon={<Hourglass size={20} color="#E8A317" />}
                     />
                 </>

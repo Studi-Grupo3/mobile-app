@@ -7,11 +7,6 @@ import { AuthStack } from './AuthStack';
 import { StudentTabs } from './StudentTabs';
 import { TeacherTabs } from './TeacherTabs';
 import { AdminDrawer } from './AdminDrawer';
-import AppointmentCreatePage from '../pages/student/AppointmentCreatePage';
-import CompleteStudentRegistrationPage from '../pages/student/CompleteStudentRegistrationPage';
-import CompleteTeacherRegistrationPage from '../pages/teacher/CompleteTeacherRegistrationPage';
-import ConfirmedPaymentPage from '../pages/student/ConfirmedPaymentPage';
-import CheckoutPage from '../pages/student/CheckoutPage';
 import NotFoundPage from '../pages/common/NotFoundPage';
 import LoadingPage from '../pages/common/LoadingPage';
 import UnauthorizedPage from '../pages/common/UnauthorizedPage';
@@ -46,20 +41,9 @@ export const AppRouter = () => {
                 ) : user.role === 'ADMIN' ? (
                     <Stack.Screen name="AdminRoot" component={AdminDrawer} />
                 ) : user.role === 'TEACHER' ? (
-                    <>
-                        <Stack.Screen name="TeacherRoot" component={TeacherTabs} />
-                        <Stack.Screen name="CompleteTeacherRegistration" component={CompleteTeacherRegistrationPage} />
-                    </>
+                    <Stack.Screen name="TeacherRoot" component={TeacherTabs} />
                 ) : (
-                    // Logic to differentiate Student vs Teacher if needed, else same Tabs with different options
-                    // For now assuming Student
-                    <>
-                        <Stack.Screen name="StudentRoot" component={StudentTabs} />
-                        <Stack.Screen name="AppointmentCreate" component={AppointmentCreatePage} />
-                        <Stack.Screen name="CompleteStudentRegistration" component={CompleteStudentRegistrationPage} />
-                        <Stack.Screen name="ConfirmedPayment" component={ConfirmedPaymentPage} />
-                        <Stack.Screen name="Checkout" component={CheckoutPage} />
-                    </>
+                    <Stack.Screen name="StudentRoot" component={StudentTabs} />
                 )}
             </Stack.Navigator>
         </NavigationContainer>

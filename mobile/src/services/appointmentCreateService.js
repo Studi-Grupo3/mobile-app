@@ -2,6 +2,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from './provider/api';
 import { toISOStringDateTime, parseDurationToMinutes } from '../utils/date';
 
+const subjectToEnum = {
+    'Português': 'PORTUGUESE',
+    'Matemática': 'MATHEMATICS',
+    'Geografia': 'GEOGRAPHY',
+    'História': 'HISTORY',
+    'Sociologia': 'SOCIOLOGY',
+    'Filosofia': 'PHILOSOPHY',
+    'Arte': 'ART',
+    'Inglês': 'ENGLISH',
+    'Espanhol': 'SPANISH',
+    'Ciências': 'SCIENCE',
+    'Biologia': 'BIOLOGY',
+    'Química': 'CHEMISTRY',
+    'Física': 'PHYSICS',
+    'Alfabetização': 'LITERACY',
+    'Literatura': 'PORTUGUESE',
+};
+
 async function getStudentIdFromSession() {
     const idStr = await AsyncStorage.getItem('userId');
     if (!idStr) {
@@ -47,7 +65,7 @@ export const appointmentCreateService = {
         }
 
         if (data.phase) payload.phase = data.phase;
-        if (data.subject) payload.subject = data.subject;
+        if (data.subject) payload.subject = subjectToEnum[data.subject] || data.subject;
         if (Array.isArray(data.materials))
             payload.materials = data.materials.map(m => m.name);
         if (data.personal) payload.personalData = data.personal;
@@ -60,23 +78,4 @@ export const appointmentCreateService = {
         const response = await api.post('/appointments', payload);
         return response.data;
     },
-
-    uploadFiles: async (appointmentId, materials = []) => {
-        const formData = new FormData();
-        formData.append('appointmentId', appointmentId);
-
-        materials.forEach(mat => {
-            formData.append('materials', {
-                uri: mat.uri,
-                name: mat.name,
-                type: mat.type || 'application/octet-stream',
-            });
-        });
-
-        console.log(`Enviando ${materials.length} arquivo(s) para agendamento ${appointmentId}`);
-        const response = await api.post('/appointments/files', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
-    }
 };

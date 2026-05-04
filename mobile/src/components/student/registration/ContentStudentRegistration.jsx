@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet } from "react-native";
 import { ArrowDown, Upload, User as UserIcon } from "lucide-react-native";
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,7 +20,7 @@ export default function ContentStudentRegistration({ current, formData, onChange
     const pickImage = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.granted === false) {
-            Alert.alert("Permissão necessária", "É necessário permitir o acesso à galeria.");
+            showAlert({ title: "Permissão necessária", text: "É necessário permitir o acesso à galeria.", icon: "error" });
             return;
         }
 
@@ -51,13 +51,20 @@ export default function ContentStudentRegistration({ current, formData, onChange
     };
 
     useEffect(() => {
-        const totalFields = 5;
-        let filled = 0;
-        if (formData.name) filled++;
-        if (formData.email) filled++;
-        if (formData.cellphoneNumber) filled++;
-        if (formData.responsibleCpf) filled++;
-        if (formData.dateBirth) filled++;
+        const fields = [
+            formData.name,
+            formData.email,
+            formData.dateBirth,
+            formData.schoolGrade,
+            formData.cellphoneNumber,
+            formData.schoolName,
+            formData.responsible?.responsibleName,
+            formData.responsible?.kinship,
+            formData.responsible?.responsibleCpf,
+            formData.responsible?.responsibleCellphoneNumber,
+        ];
+        const totalFields = fields.length;
+        const filled = fields.filter(Boolean).length;
         const percent = Math.round((filled / totalFields) * 100);
         onProgressChange(percent);
     }, [formData, onProgressChange]);
@@ -225,6 +232,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         overflow: 'hidden',
         backgroundColor: 'white',
+        paddingHorizontal: 4,
     },
     actionContainer: {
         marginBottom: 32,

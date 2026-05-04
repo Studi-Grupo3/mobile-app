@@ -39,17 +39,17 @@ const MenuHamburguer = () => {
                         </View>
 
                         {/* Navigation Links */}
-                        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                        <TouchableOpacity onPress={() => { setIsOpen(false); navigation.navigate('Dashboard'); }}>
                             <Text style={styles.linkText}>Início</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.navigate('MeusAgendamentos')}>
+                        <TouchableOpacity onPress={() => { setIsOpen(false); navigation.navigate('Appointments'); }}>
                             <Text style={styles.linkText}>Agendamentos</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.navigate('Calendario')}>
+                        <TouchableOpacity onPress={() => { setIsOpen(false); navigation.navigate('Appointments'); }}>
                             <Text style={styles.linkText}>Calendário</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.navigate('Contato')}>
-                            <Text style={styles.linkText}>Contato</Text>
+                        <TouchableOpacity onPress={() => { setIsOpen(false); navigation.navigate('Profile'); }}>
+                            <Text style={styles.linkText}>Perfil</Text>
                         </TouchableOpacity>
 
                         <ScheduleButton />

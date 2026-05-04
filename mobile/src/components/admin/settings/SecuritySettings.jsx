@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { SaveButton } from './SaveButton';
+import { AlertModal } from '../../ui/AlertModal';
+import { useAlert } from '../../../hooks/useAlert';
 import { adminSettingsService } from '../../../services/dashboard/adminSettingsService';
 
 export function SecuritySettings() {
@@ -11,6 +13,7 @@ export function SecuritySettings() {
         confirmPassword: ''
     });
     const [loading, setLoading] = useState(true);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     useEffect(() => {
         adminSettingsService.get()
@@ -28,19 +31,23 @@ export function SecuritySettings() {
         setSecurity(prev => ({ ...prev, [field]: value }));
 
     const salvar = async () => {
-        if (security.newPassword !== security.confirmPassword) {
-            return Alert.alert('Erro', 'Nova senha e confirmação não conferem.');
+        if (security.newPassword && security.newPassword !== security.confirmPassword) {
+            showAlert('error', 'Erro', 'Nova senha e confirmação não conferem.');
+            return;
+        }
+        if (!security.currentPassword) {
+            showAlert('error', 'Erro', 'Informe a senha atual para salvar alterações.');
+            return;
         }
         try {
-            await adminSettingsService.confirmPassword({
-                currentPassword: security.currentPassword
-            });
-            await adminSettingsService.patch({
-                currentPassword: security.currentPassword,
-                newPassword: security.newPassword,
-                confirmPassword: security.confirmPassword
-            });
-            Alert.alert('Sucesso', 'Senha alterada com sucesso!');
+            const payload = { currentPassword: security.currentPassword };
+            if (security.email) payload.email = security.email;
+            if (security.newPassword) {
+                payload.newPassword = security.newPassword;
+                payload.confirmPassword = security.confirmPassword;
+            }
+            await adminSettingsService.patch(payload);
+            showAlert('success', 'Sucesso', 'Alterações salvas com sucesso!');
             setSecurity(prev => ({
                 ...prev,
                 currentPassword: '',
@@ -49,7 +56,7 @@ export function SecuritySettings() {
             }));
         } catch (err) {
             console.error('Erro ao atualizar segurança:', err);
-            Alert.alert('Erro', err.message || 'Falha ao alterar senha.');
+            showAlert('error', 'Erro', err.message || 'Falha ao salvar alterações.');
         }
     };
 
@@ -65,8 +72,10 @@ export function SecuritySettings() {
                     <Text style={styles.label}>E-mail</Text>
                     <TextInput
                         value={security.email}
-                        editable={false}
-                        style={[styles.input, styles.disabledInput]}
+                        onChangeText={t => handleChange('email', t)}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        style={styles.input}
                     />
                 </View>
 
@@ -107,6 +116,8 @@ export function SecuritySettings() {
             <View style={styles.buttonContainer}>
                 <SaveButton onClick={salvar} label="Salvar Alterações" />
             </View>
+
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }

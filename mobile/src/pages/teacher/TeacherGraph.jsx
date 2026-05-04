@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { InfoCard } from '../../components/common/InfoCard';
-import { mockTeacherService } from '../../mocks/mockServices';
+import { teacherService } from '../../services/teacherService';
 import { translateSubject } from '../../utils/tradutionUtils';
 import { BookOpen, AlertCircle, Clock, TrendingUp, Users, DollarSign } from 'lucide-react-native';
 import { BarChart } from 'react-native-chart-kit';
@@ -46,10 +46,9 @@ export default function TeacherGraph() {
     useEffect(() => {
         setLoading(true);
         Promise.all([
-            mockTeacherService.getDashboard(),
-            mockTeacherService.getChartData(),
+            teacherService.getDashboard(),
         ])
-            .then(([dashboard, charts]) => {
+            .then(([dashboard]) => {
                 const stats = dashboard.stats || dashboard;
                 const totalLessons = stats.totalLessons ?? 0;
                 const cancelledLessons = stats.cancelledLessons ?? 0;
@@ -102,10 +101,10 @@ export default function TeacherGraph() {
                 ]);
 
                 // Chart data for monthly lessons
-                if (charts?.monthlyLessons) {
+                if (dashboard?.monthlyLessons) {
                     setChartData({
-                        labels: charts.monthlyLessons.map(d => d.label),
-                        datasets: [{ data: charts.monthlyLessons.map(d => d.value) }],
+                        labels: dashboard.monthlyLessons.map(d => d.label),
+                        datasets: [{ data: dashboard.monthlyLessons.map(d => d.value) }],
                     });
                 }
 

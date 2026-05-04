@@ -100,12 +100,6 @@ export const teacherService = {
         }
     },
 
-    getMateriaisAlunos: async () => {
-        const url = await buildTeacherUrl('materiais-alunos');
-        const headers = await authHeader();
-        return api.get(url, { headers }).then(res => res.data);
-    },
-
     getLessonsHistory: async ({ search = '' } = {}) => {
         const url = await buildTeacherUrl('lessons-history');
         const headers = await authHeader();
@@ -139,13 +133,19 @@ export const teacherService = {
         }).then(res => res.data);
     },
 
+    // TODO: Endpoints abaixo ainda não implementados no backend
+    getMateriaisAlunos: async () => {
+        console.warn('[teacherService] getMateriaisAlunos: endpoint não implementado no backend');
+        return [];
+    },
+
     getAvailability: async (teacherId) => {
-        const headers = await authHeader();
-        return api.get(`/teachers/${teacherId}/availability`, { headers }).then(res => res.data);
+        console.warn('[teacherService] getAvailability: endpoint não implementado no backend');
+        return {};
     },
 
     saveAvailability: async (teacherId, availability) => {
-        const headers = await authHeader();
-        return api.put(`/teachers/${teacherId}/availability`, availability, { headers }).then(res => res.data);
+        console.warn('[teacherService] saveAvailability: endpoint não implementado no backend');
+        return {};
     },
 };

@@ -1,5 +1,5 @@
 import { api } from '../provider/api';
-import { translateMonth, translateWeekday, translatePaymentStatus } from '../../utils/tradutionUtils';
+import { translateMonth, translateWeekdayShort, translatePaymentStatus } from '../../utils/tradutionUtils';
 
 export const overviewDashService = {
     async fetchOverview() {
@@ -35,7 +35,7 @@ export const overviewDashService = {
             type: 'bar',
             title: 'Aulas por Dia da Semana',
             data: data.lessonsPerDay.map(item => ({
-                label: translateWeekday(item.label),
+                label: translateWeekdayShort(item.label),
                 value: item.value
             }))
         };
@@ -47,7 +47,9 @@ export const overviewDashService = {
             return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
         };
 
-        return data.recentPayments.map(item => {
+        return data.recentPayments
+            .filter(item => item.teacher !== 'Admin')
+            .map(item => {
             const hourlyRate = item.hourlyRate;
             const duration = item.durationClass;
             const totalValue = hourlyRate * duration;

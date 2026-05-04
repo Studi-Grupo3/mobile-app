@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { teacherService } from "../../services/teacherService";
 import { mockTeacherService } from "../../mocks/mockServices";
+import { getProfessorImage } from "../../mocks/mockImages";
 import { useNavigation } from "@react-navigation/native";
 
 const PlaceholderBtn = ({ text }) => (
@@ -28,6 +29,8 @@ export default function ProfessorsSectionHome() {
 
     const pageSize = 3;
 
+    const IMAGE_SOURCE_CONFIG = { useMock: true };
+
     useEffect(() => {
         let alive = true;
         (async () => {
@@ -35,7 +38,16 @@ export default function ProfessorsSectionHome() {
                 const resp = await mockTeacherService.listPublic(page, pageSize);
                 if (!alive) return;
                 const data = Array.isArray(resp) ? resp : resp.content || [];
-                setProfessors(data);
+                // Resolve mock images from name slug
+                const withImages = data.map(prof => {
+                    let img = prof.profileImage;
+                    if (img && !img.startsWith('http')) img = null;
+                    if (!img && IMAGE_SOURCE_CONFIG.useMock) {
+                        return { ...prof, profileImage: getProfessorImage(prof.name) };
+                    }
+                    return prof;
+                });
+                setProfessors(withImages);
                 setTotalPages(resp.totalPages ?? 1);
             } catch (e) {
                 setProfessors([]);
@@ -74,7 +86,9 @@ export default function ProfessorsSectionHome() {
                                     >
                                         {prof.profileImage ? (
                                             <Image
-                                                source={{ uri: `data:${prof.profileImageContentType};base64,${prof.profileImage}` }}
+                                                source={typeof prof.profileImage === 'string' && prof.profileImage.length > 100
+                                                    ? { uri: `data:${prof.profileImageContentType};base64,${prof.profileImage}` }
+                                                    : typeof prof.profileImage === 'number' ? prof.profileImage : { uri: prof.profileImage }}
                                                 style={styles.cardImage}
                                                 resizeMode="cover"
                                             />

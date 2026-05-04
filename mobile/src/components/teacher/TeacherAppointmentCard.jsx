@@ -39,7 +39,7 @@ export const TeacherAppointmentCard = ({
                 <View style={styles.avatarContainer}>
                     {studentImageUrl ? (
                         <Image
-                            source={{ uri: studentImageUrl }}
+                            source={typeof studentImageUrl === 'string' ? { uri: studentImageUrl } : studentImageUrl}
                             style={styles.avatar}
                             resizeMode="cover"
                         />

@@ -15,7 +15,7 @@ export const studentService = {
             name: fileName || 'photo.jpg',
             type: 'image/jpeg',
         });
-        return api.put('/profile-photos', formData, {
+        return api.post('/profile-photos', formData, {
             params: { id: Number(id), role: 'student' },
             headers: { 'Content-Type': 'multipart/form-data' }
         }).then(res => res.data);

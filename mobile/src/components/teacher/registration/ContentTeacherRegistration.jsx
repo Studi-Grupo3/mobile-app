@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Modal, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Modal, StyleSheet } from "react-native";
 import { GraduationCap, Upload, User, Trash2 } from "lucide-react-native";
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -45,7 +45,7 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
     const pickImage = async () => {
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.granted === false) {
-            Alert.alert("Permissão necessária", "É necessário permitir o acesso à galeria.");
+            showAlert({ title: "Permissão necessária", text: "É necessário permitir o acesso à galeria.", icon: "error" });
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({

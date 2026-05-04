@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { usePreferenceId } from '../../hooks/payments/usePreferenceId';
 import { CreditCard, ExternalLink } from 'lucide-react-native';
+import { AlertModal } from '../../components/ui/AlertModal';
+import { useAlert } from '../../hooks/useAlert';
 
 export default function CheckoutPage() {
     const route = useRoute();
@@ -14,6 +16,7 @@ export default function CheckoutPage() {
 
     const { preferenceId, loading, error } = usePreferenceId(amount, payerEmail);
     const [paymentStatus, setPaymentStatus] = useState(null);
+    const { alertConfig, showAlert, hideAlert } = useAlert();
 
     const handleOpenPayment = async () => {
         if (!preferenceId) return;
@@ -23,15 +26,11 @@ export default function CheckoutPage() {
         const supported = await Linking.canOpenURL(url);
         if (supported) {
             await Linking.openURL(url);
-            Alert.alert(
-                "Pagamento",
-                "Após concluir o pagamento no MercadoPago, clique em 'Verificar Status' (Simulação)",
-                [
-                    { text: "OK", onPress: () => setPaymentStatus("Aguardando confirmação...") }
-                ]
-            );
+            showAlert('info', 'Pagamento', 'Após concluir o pagamento no MercadoPago, clique em \'Verificar Status\' (Simulação)', [
+                { text: 'OK', onPress: () => { hideAlert(); setPaymentStatus('Aguardando confirmação...'); } }
+            ]);
         } else {
-            Alert.alert("Erro", "Não foi possível abrir o link de pagamento.");
+            showAlert('error', 'Erro', 'Não foi possível abrir o link de pagamento.');
         }
     };
 
@@ -71,6 +70,7 @@ export default function CheckoutPage() {
                     <Text style={styles.cancelText}>Cancelar</Text>
                 </TouchableOpacity>
             </View>
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
         </View>
     );
 }
