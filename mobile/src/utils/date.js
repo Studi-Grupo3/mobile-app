@@ -2,14 +2,12 @@
 
 export function toISOStringDateTime(date, timeStr) {
     const [h, m] = timeStr.split(':').map(x => parseInt(x, 10));
-    const dt = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        h,
-        m
-    );
-    return dt.toISOString();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(h).padStart(2, '0');
+    const min = String(m).padStart(2, '0');
+    return `${year}-${month}-${day}T${hour}:${min}:00`;
 }
 
 export function parseDurationToMinutes(str) {
@@ -35,9 +33,9 @@ export function parseUtcDateTime(value) {
     if (value instanceof Date) return value;
     const raw = String(value).trim();
     if (!raw) return null;
-    const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(raw);
-    const normalized = hasTimezone ? raw : `${raw}Z`;
-    const dt = new Date(normalized);
+    // Backend returns local time without timezone suffix (e.g. 2026-06-08T10:00:00)
+    // Do NOT append Z — treat as local time
+    const dt = new Date(raw);
     if (Number.isNaN(dt.getTime())) return null;
     return dt;
 }

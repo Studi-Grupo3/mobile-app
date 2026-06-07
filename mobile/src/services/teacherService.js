@@ -133,19 +133,69 @@ export const teacherService = {
         }).then(res => res.data);
     },
 
-    // TODO: Endpoints abaixo ainda não implementados no backend
+    // TODO: Endpoint abaixo ainda não implementado no backend
     getMateriaisAlunos: async () => {
         console.warn('[teacherService] getMateriaisAlunos: endpoint não implementado no backend');
         return [];
     },
 
     getAvailability: async (teacherId) => {
-        console.warn('[teacherService] getAvailability: endpoint não implementado no backend');
-        return {};
+        const headers = await authHeader();
+        const res = await api.get(`/teachers/${teacherId}/availability`, { headers });
+        // Transform backend format to frontend format
+        // Backend: [{ dayOfWeek: "MONDAY", startTime: "08:00", endTime: "18:00" }]
+        // Frontend: { "Segunda-feira": [{ inicio: "08:00", fim: "18:00" }] }
+        const dayMap = {
+            MONDAY: "Segunda-feira",
+            TUESDAY: "Terça-feira",
+            WEDNESDAY: "Quarta-feira",
+            THURSDAY: "Quinta-feira",
+            FRIDAY: "Sexta-feira",
+            SATURDAY: "Sábado",
+            SUNDAY: "Domingo"
+        };
+        const grouped = {};
+        (res.data || []).forEach(slot => {
+            const dayName = dayMap[slot.dayOfWeek] || slot.dayOfWeek;
+            if (!grouped[dayName]) grouped[dayName] = [];
+            grouped[dayName].push({ inicio: slot.startTime, fim: slot.endTime });
+        });
+        return grouped;
     },
 
     saveAvailability: async (teacherId, availability) => {
-        console.warn('[teacherService] saveAvailability: endpoint não implementado no backend');
-        return {};
+        const headers = await authHeader();
+        // Transform frontend format to backend format
+        const dayMapReverse = {
+            "Segunda-feira": "MONDAY",
+            "Terça-feira": "TUESDAY",
+            "Quarta-feira": "WEDNESDAY",
+            "Quinta-feira": "THURSDAY",
+            "Sexta-feira": "FRIDAY",
+            "Sábado": "SATURDAY",
+            "Domingo": "SUNDAY"
+        };
+        const slots = [];
+        Object.entries(availability).forEach(([day, horarios]) => {
+            const dayEnum = dayMapReverse[day] || day;
+            (horarios || []).forEach(h => {
+                slots.push({
+                    dayOfWeek: dayEnum,
+                    startTime: h.inicio,
+                    endTime: h.fim
+                });
+            });
+        });
+        const res = await api.put(`/teachers/${teacherId}/availability`, slots, { headers });
+        return res.data;
+    },
+
+    getAvailableSlots: async (teacherId, date) => {
+        const headers = await authHeader();
+        const res = await api.get(`/teachers/${teacherId}/available-slots`, {
+            headers,
+            params: { date }
+        });
+        return res.data || [];
     },
 };

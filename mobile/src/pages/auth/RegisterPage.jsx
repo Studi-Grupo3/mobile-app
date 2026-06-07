@@ -188,6 +188,7 @@ export default function RegisterPage() {
 const styles = StyleSheet.create({
     root: {
         flex: 1,
+        minHeight: '100%',
         backgroundColor: '#3970B7',
     },
     flex: {

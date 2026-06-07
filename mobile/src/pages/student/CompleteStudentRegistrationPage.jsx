@@ -2,13 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, User, Image as ImageIcon, Users, MapPin } from 'lucide-react-native';
 import ContentStudentRegistration from '../../components/student/registration/ContentStudentRegistration';
 import { studentService } from '../../services/studentService';
 import { authService } from '../../services/authService';
-import { User, Image as ImageIcon, Users } from 'lucide-react-native';
 import { AlertModal } from '../../components/ui/AlertModal';
 import { useAlert } from '../../hooks/useAlert';
+import { mascararCelular } from '../../utils/formUtils';
+
+function isoToDisplay(iso) {
+    if (!iso) return '';
+    const parts = iso.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return iso;
+}
+
+function displayToIso(display) {
+    if (!display) return undefined;
+    const parts = display.split('/');
+    if (parts.length === 3 && parts[2].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return undefined;
+}
 
 export default function CompleteStudentRegistrationPage() {
     const insets = useSafeAreaInsets();
@@ -24,12 +38,20 @@ export default function CompleteStudentRegistrationPage() {
         schoolGrade: "",
         schoolName: "",
         cellphoneNumber: "",
+        isAdult: false,
         responsible: {
             responsibleName: "",
             kinship: "",
             responsibleCpf: "",
             responsibleCellphoneNumber: "",
         },
+        cep: "",
+        rua: "",
+        numero: "",
+        complemento: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
     });
     const [loading, setLoading] = useState(true);
 
@@ -45,27 +67,34 @@ export default function CompleteStudentRegistrationPage() {
                         id: data.id || studentId,
                         name: data.name || '',
                         email: data.email || '',
-                        dateBirth: data.dateBirth || '',
+                        dateBirth: isoToDisplay(data.dateBirth),
                         schoolGrade: data.schoolGrade || '',
                         schoolName: data.schoolName || '',
-                        cellphoneNumber: data.cellphoneNumber || '',
+                        cellphoneNumber: mascararCelular(data.cellphoneNumber || ''),
+                        isAdult: data.isAdult || false,
                         responsible: {
                             responsibleName: data.responsible?.responsibleName || '',
                             kinship: data.responsible?.kinship || '',
                             responsibleCpf: data.responsible?.responsibleCpf || '',
-                            responsibleCellphoneNumber: data.responsible?.responsibleCellphoneNumber || '',
+                            responsibleCellphoneNumber: mascararCelular(data.responsible?.responsibleCellphoneNumber || ''),
                         },
+                        cep: data.cep || '',
+                        rua: data.rua || '',
+                        numero: data.numero || '',
+                        complemento: data.complemento || '',
+                        bairro: data.bairro || '',
+                        cidade: data.cidade || '',
+                        estado: data.estado || '',
                     }));
                 }
             } catch (err) {
-                console.log('Erro ao buscar dados do aluno, usando dados padr\u00e3o:', err.message);
+                console.log('Erro ao buscar dados do aluno, usando dados padrão:', err.message);
             } finally {
                 setLoading(false);
             }
         };
         fetchStudentData();
     }, []);
-
     const handleChange = (field, value) => {
         if (['responsibleName', 'kinship', 'responsibleCpf', 'responsibleCellphoneNumber'].includes(field)) {
             setFormData(prev => ({
@@ -87,16 +116,24 @@ export default function CompleteStudentRegistrationPage() {
             const payload = {
                 name: formData.name,
                 email: formData.email,
-                dateBirth: formData.dateBirth,
+                dateBirth: displayToIso(formData.dateBirth) || formData.dateBirth,
                 schoolGrade: formData.schoolGrade,
                 schoolName: formData.schoolName,
-                cellphoneNumber: formData.cellphoneNumber,
-                responsible: {
+                cellphoneNumber: formData.cellphoneNumber ? formData.cellphoneNumber.replace(/\D/g, '') : '',
+                isAdult: formData.isAdult || false,
+                responsible: formData.isAdult ? null : {
                     responsibleName: formData.responsible.responsibleName,
                     kinship: formData.responsible.kinship,
-                    responsibleCpf: formData.responsible.responsibleCpf,
-                    responsibleCellphoneNumber: formData.responsible.responsibleCellphoneNumber,
+                    responsibleCpf: formData.responsible.responsibleCpf ? formData.responsible.responsibleCpf.replace(/\D/g, '') : '',
+                    responsibleCellphoneNumber: formData.responsible.responsibleCellphoneNumber ? formData.responsible.responsibleCellphoneNumber.replace(/\D/g, '') : '',
                 },
+                cep: formData.cep,
+                rua: formData.rua,
+                numero: formData.numero,
+                complemento: formData.complemento,
+                bairro: formData.bairro,
+                cidade: formData.cidade,
+                estado: formData.estado,
             };
             await studentService.update(studentId, payload);
             showAlert('success', 'Sucesso', 'Perfil atualizado com sucesso!');
@@ -106,11 +143,16 @@ export default function CompleteStudentRegistrationPage() {
         }
     };
 
-    const tabs = [
+    const allTabs = [
         { id: "Dados do Aluno", label: "Dados", icon: User },
         { id: "Responsavel", label: "Resp.", icon: Users },
+        { id: "Endereco", label: "Endereço", icon: MapPin },
         { id: "Foto do Aluno", label: "Foto", icon: ImageIcon },
     ];
+
+    const tabs = formData.isAdult
+        ? allTabs.filter(t => t.id !== "Responsavel")
+        : allTabs;
 
     if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#3970B7" /></View>;
 

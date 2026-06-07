@@ -31,13 +31,20 @@ export default function GerenciamentoProfessoresPage() {
     const subjectOptions = Object.entries(subjectNamesPt).map(([key, label]) => ({ key, label }));
 
     const ADMIN_EMAIL = 'admin@exemplo.com';
+    const ADMIN_NAME = 'admin';
+
+    const isAdminTeacher = (p) => {
+        const email = String(p?.email || '').toLowerCase();
+        const name = String(p?.name || '').trim().toLowerCase();
+        return email === ADMIN_EMAIL || name === ADMIN_NAME;
+    };
 
     const load = useCallback(async () => {
         setLoading(true);
         try {
             const data = await teacherManagerService.list();
             const list = Array.isArray(data) ? data : (data.content || []);
-            setProfessores(list.filter(p => p.email?.toLowerCase() !== ADMIN_EMAIL));
+            setProfessores(list.filter(p => !isAdminTeacher(p)));
         } catch (error) {
             console.error(error);
         } finally {

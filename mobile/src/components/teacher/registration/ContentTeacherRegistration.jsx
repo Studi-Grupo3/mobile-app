@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Modal, StyleSheet } from "react-native";
-import { GraduationCap, Upload, User, Trash2 } from "lucide-react-native";
+import { GraduationCap, Upload, User, Trash2, Camera, ChevronDown } from "lucide-react-native";
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ActionButtons from "../../common/ActionButtons";
-import { mascararCelular } from "../../../utils/formUtils";
+import { mascararCelular, mascararDataNascimento } from "../../../utils/formUtils";
 import { showAlert } from "../../common/ShowAlert";
 import { teacherService } from "../../../services/teacherService";
-import { Picker } from '@react-native-picker/picker';
 
 export function ContentTeacherRegistration({ current, formData, onChange, onSave, onAvailabilityChange }) {
     const [showModal, setShowModal] = useState(false);
+    const [showPhotoModal, setShowPhotoModal] = useState(false);
+    const [showFormacaoModal, setShowFormacaoModal] = useState(false);
+    const [showExperienciaModal, setShowExperienciaModal] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [disponibilidade, setDisponibilidade] = useState({});
     const [professorId, setProfessorId] = useState(null);
@@ -42,9 +44,25 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
         fetchDisponibilidade();
     }, [professorId]);
 
-    const pickImage = async () => {
+    const handleImageResult = async (result) => {
+        if (!result.canceled) {
+            const asset = result.assets[0];
+            const base64Img = `data:image/jpeg;base64,${asset.base64}`;
+            setPreviewUrl(base64Img);
+
+            try {
+                await AsyncStorage.setItem("fotoPerfilProfessor", base64Img);
+                showAlert({ title: "Foto atualizada!", text: "Sua foto foi selecionada.", icon: "success" });
+            } catch (e) {
+                await AsyncStorage.setItem("fotoPerfilProfessor", base64Img);
+            }
+        }
+    };
+
+    const pickFromGallery = async () => {
+        setShowPhotoModal(false);
         const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permissionResult.granted === false) {
+        if (!permissionResult.granted) {
             showAlert({ title: "Permissão necessária", text: "É necessário permitir o acesso à galeria.", icon: "error" });
             return;
         }
@@ -55,20 +73,24 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
             quality: 0.5,
             base64: true,
         });
+        await handleImageResult(result);
+    };
 
-        if (!result.canceled) {
-            const asset = result.assets[0];
-            const base64Img = `data:image/jpeg;base64,${asset.base64}`;
-            setPreviewUrl(base64Img);
-
-            try {
-                // Fallback save local
-                await AsyncStorage.setItem("fotoPerfilProfessor", base64Img);
-                showAlert({ title: "Foto atualizada!", text: "Sua foto foi selecionada.", icon: "success" });
-            } catch (e) {
-                await AsyncStorage.setItem("fotoPerfilProfessor", base64Img);
-            }
+    const pickFromCamera = async () => {
+        setShowPhotoModal(false);
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permissionResult.granted) {
+            showAlert({ title: "Permissão necessária", text: "É necessário permitir o acesso à câmera.", icon: "error" });
+            return;
         }
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+            base64: true,
+        });
+        await handleImageResult(result);
     };
 
     const handleHorarioChange = (dia, idx, campo, valor) => {
@@ -146,7 +168,9 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
                                 style={styles.input}
                                 placeholder="dd/mm/aaaa"
                                 value={formData.dateBirth || ""}
-                                onChangeText={t => onChange("dateBirth", t)}
+                                onChangeText={t => onChange("dateBirth", mascararDataNascimento(t))}
+                                keyboardType="numeric"
+                                maxLength={10}
                             />
                         </View>
                         <View>
@@ -173,34 +197,78 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
                     <View style={styles.formGap}>
                         <View>
                             <Text style={styles.label}>Formação Acadêmica</Text>
-                            <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.academicFormation}
-                                    onValueChange={(val) => onChange("academicFormation", val)}
-                                >
-                                    <Picker.Item label="Selecione..." value="" />
-                                    <Picker.Item label="Graduação" value="graduacao" />
-                                    <Picker.Item label="Pós-graduação" value="pos" />
-                                    <Picker.Item label="Mestrado" value="mestrado" />
-                                    <Picker.Item label="Doutorado" value="doutorado" />
-                                </Picker>
-                            </View>
+                            <TouchableOpacity
+                                onPress={() => setShowFormacaoModal(true)}
+                                style={styles.selectButton}
+                            >
+                                <Text style={formData.academicFormation ? styles.selectValue : styles.placeholderText}>
+                                    {formData.academicFormation
+                                        ? ({ graduacao: 'Graduação', pos: 'Pós-graduação', mestrado: 'Mestrado', doutorado: 'Doutorado' }[formData.academicFormation] || formData.academicFormation)
+                                        : 'Selecione...'}
+                                </Text>
+                                <ChevronDown size={18} color="#6B7280" />
+                            </TouchableOpacity>
+                            <Modal visible={showFormacaoModal} transparent animationType="fade" onRequestClose={() => setShowFormacaoModal(false)}>
+                                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowFormacaoModal(false)}>
+                                    <View style={styles.selectModalContent}>
+                                        <Text style={styles.modalTitle}>Formação Acadêmica</Text>
+                                        {[
+                                            { label: 'Graduação', value: 'graduacao' },
+                                            { label: 'Pós-graduação', value: 'pos' },
+                                            { label: 'Mestrado', value: 'mestrado' },
+                                            { label: 'Doutorado', value: 'doutorado' },
+                                        ].map(item => (
+                                            <TouchableOpacity
+                                                key={item.value}
+                                                onPress={() => { onChange('academicFormation', item.value); setShowFormacaoModal(false); }}
+                                                style={[styles.selectOption, formData.academicFormation === item.value && styles.selectOptionActive]}
+                                            >
+                                                <Text style={[styles.selectOptionText, formData.academicFormation === item.value && styles.selectOptionTextActive]}>
+                                                    {item.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                </TouchableOpacity>
+                            </Modal>
                         </View>
 
                         <View>
                             <Text style={styles.label}>Anos de Experiência</Text>
-                            <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formData.yearsExperience}
-                                    onValueChange={(val) => onChange("yearsExperience", val)}
-                                >
-                                    <Picker.Item label="Selecione..." value="" />
-                                    <Picker.Item label="1 ano" value="1" />
-                                    <Picker.Item label="2 anos" value="2" />
-                                    <Picker.Item label="3 anos" value="3" />
-                                    <Picker.Item label="4 anos ou mais" value="4+" />
-                                </Picker>
-                            </View>
+                            <TouchableOpacity
+                                onPress={() => setShowExperienciaModal(true)}
+                                style={styles.selectButton}
+                            >
+                                <Text style={formData.yearsExperience ? styles.selectValue : styles.placeholderText}>
+                                    {formData.yearsExperience
+                                        ? ({ '1': '1 ano', '2': '2 anos', '3': '3 anos', '4+': '4 anos ou mais' }[formData.yearsExperience] || formData.yearsExperience)
+                                        : 'Selecione...'}
+                                </Text>
+                                <ChevronDown size={18} color="#6B7280" />
+                            </TouchableOpacity>
+                            <Modal visible={showExperienciaModal} transparent animationType="fade" onRequestClose={() => setShowExperienciaModal(false)}>
+                                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowExperienciaModal(false)}>
+                                    <View style={styles.selectModalContent}>
+                                        <Text style={styles.modalTitle}>Anos de Experiência</Text>
+                                        {[
+                                            { label: '1 ano', value: '1' },
+                                            { label: '2 anos', value: '2' },
+                                            { label: '3 anos', value: '3' },
+                                            { label: '4 anos ou mais', value: '4+' },
+                                        ].map(item => (
+                                            <TouchableOpacity
+                                                key={item.value}
+                                                onPress={() => { onChange('yearsExperience', item.value); setShowExperienciaModal(false); }}
+                                                style={[styles.selectOption, formData.yearsExperience === item.value && styles.selectOptionActive]}
+                                            >
+                                                <Text style={[styles.selectOptionText, formData.yearsExperience === item.value && styles.selectOptionTextActive]}>
+                                                    {item.label}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                </TouchableOpacity>
+                            </Modal>
                         </View>
 
                         <View>
@@ -209,9 +277,13 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
                                 onPress={() => setShowModal(true)}
                                 style={styles.selectButton}
                             >
-                                {formData.subject ? (
-                                    <View style={styles.selectedSubjectBadge}>
-                                        <Text style={styles.selectedSubjectText}>{formData.subject}</Text>
+                                {(formData.subjects && formData.subjects.length > 0) ? (
+                                    <View style={styles.selectedSubjectsContainer}>
+                                        {formData.subjects.map(sub => (
+                                            <View key={sub} style={styles.selectedSubjectBadge}>
+                                                <Text style={styles.selectedSubjectText}>{sub}</Text>
+                                            </View>
+                                        ))}
                                     </View>
                                 ) : (
                                     <Text style={styles.placeholderText}>Clique para selecionar...</Text>
@@ -231,25 +303,34 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
                     <Modal visible={showModal} transparent animationType="fade" onRequestClose={() => setShowModal(false)}>
                         <View style={styles.modalOverlay}>
                             <View style={styles.modalContent}>
-                                <Text style={styles.modalTitle}>Selecione a matéria</Text>
+                                <Text style={styles.modalTitle}>Selecione as matérias</Text>
                                 <ScrollView style={styles.modalScrollView}>
                                     <View style={styles.subjectList}>
                                         {[
                                             "Matemática", "Física", "Química", "Biologia", "História",
                                             "Geografia", "Português", "Inglês", "Sociologia", "Filosofia",
                                             "Arte", "Ciências", "Alfabetização", "Espanhol"
-                                        ].map((sub) => (
-                                            <TouchableOpacity
-                                                key={sub}
-                                                onPress={() => onChange("subject", sub)}
-                                                style={[
-                                                    styles.subjectChip,
-                                                    formData.subject === sub ? styles.subjectChipSelected : styles.subjectChipUnselected
-                                                ]}
-                                            >
-                                                <Text style={formData.subject === sub ? styles.subjectTextSelected : styles.subjectTextUnselected}>{sub}</Text>
-                                            </TouchableOpacity>
-                                        ))}
+                                        ].map((sub) => {
+                                            const selected = (formData.subjects || []).includes(sub);
+                                            return (
+                                                <TouchableOpacity
+                                                    key={sub}
+                                                    onPress={() => {
+                                                        const current = formData.subjects || [];
+                                                        const updated = selected
+                                                            ? current.filter(s => s !== sub)
+                                                            : [...current, sub];
+                                                        onChange("subjects", updated);
+                                                    }}
+                                                    style={[
+                                                        styles.subjectChip,
+                                                        selected ? styles.subjectChipSelected : styles.subjectChipUnselected
+                                                    ]}
+                                                >
+                                                    <Text style={selected ? styles.subjectTextSelected : styles.subjectTextUnselected}>{sub}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
                                     </View>
                                 </ScrollView>
                                 <TouchableOpacity onPress={() => setShowModal(false)} style={styles.confirmButton}>
@@ -278,10 +359,29 @@ export function ContentTeacherRegistration({ current, formData, onChange, onSave
                         </View>
                         <Text style={styles.photoInstruction}>Adicione uma foto profissional.</Text>
 
-                        <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
+                        <TouchableOpacity onPress={() => setShowPhotoModal(true)} style={styles.uploadButton}>
                             <Upload size={20} color="white" />
                             <Text style={styles.uploadButtonText}>Selecionar Foto</Text>
                         </TouchableOpacity>
+
+                        <Modal visible={showPhotoModal} transparent animationType="fade" onRequestClose={() => setShowPhotoModal(false)}>
+                            <TouchableOpacity style={styles.photoModalOverlay} activeOpacity={1} onPress={() => setShowPhotoModal(false)}>
+                                <View style={styles.photoModalContent}>
+                                    <Text style={styles.photoModalTitle}>Escolher foto</Text>
+                                    <TouchableOpacity style={styles.photoModalOption} onPress={pickFromCamera}>
+                                        <Camera size={22} color="#3970B7" />
+                                        <Text style={styles.photoModalOptionText}>Tirar foto</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.photoModalOption} onPress={pickFromGallery}>
+                                        <Upload size={22} color="#3970B7" />
+                                        <Text style={styles.photoModalOptionText}>Escolher da galeria</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.photoModalCancel} onPress={() => setShowPhotoModal(false)}>
+                                        <Text style={styles.photoModalCancelText}>Cancelar</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </TouchableOpacity>
+                        </Modal>
                     </View>
                     <ActionButtons onSave={onSave} />
                 </ScrollView>
@@ -378,22 +478,55 @@ const styles = StyleSheet.create({
     },
     selectButton: {
         borderWidth: 1,
-        borderColor: '#D1D5DB', // gray-300
+        borderColor: '#D1D5DB',
         borderRadius: 6,
         padding: 12,
         backgroundColor: 'white',
         minHeight: 44,
-        justifyContent: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    selectValue: {
+        fontSize: 14,
+        color: '#111827',
+    },
+    selectModalContent: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        width: '90%',
+        maxWidth: 360,
+        padding: 16,
+        gap: 4,
+    },
+    selectOption: {
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+    },
+    selectOptionActive: {
+        backgroundColor: '#DBEAFE',
+    },
+    selectOptionText: {
+        fontSize: 14,
+        color: '#374151',
+    },
+    selectOptionTextActive: {
+        color: '#1E40AF',
+        fontWeight: '600',
+    },
+    selectedSubjectsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 6,
     },
     selectedSubjectBadge: {
         backgroundColor: '#DBEAFE', // blue-100
-        alignSelf: 'flex-start',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 4,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
     },
     selectedSubjectText: {
         color: '#1E40AF', // blue-800
@@ -585,5 +718,46 @@ const styles = StyleSheet.create({
         width: 64, // w-16
         backgroundColor: 'white',
         textAlign: 'center',
+    },
+    photoModalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    photoModalContent: {
+        backgroundColor: 'white',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        padding: 24,
+        paddingBottom: 32,
+    },
+    photoModalTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1F2937',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    photoModalOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    photoModalOptionText: {
+        fontSize: 16,
+        color: '#374151',
+    },
+    photoModalCancel: {
+        marginTop: 12,
+        alignItems: 'center',
+        paddingVertical: 12,
+    },
+    photoModalCancelText: {
+        fontSize: 16,
+        color: '#6B7280',
+        fontWeight: '600',
     },
 });

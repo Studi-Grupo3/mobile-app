@@ -13,7 +13,7 @@ import {
 } from "../../../utils/tradutionUtils";
 import { parseUtcDateTime } from "../../../utils/date";
 
-export const AllAppointments = ({ filter = "ALL" }) => {
+export const AllAppointments = ({ filter = "ALL", sortBy }) => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -106,7 +106,27 @@ export const AllAppointments = ({ filter = "ALL" }) => {
         });
     };
 
-    const filteredData = getFilteredAppointments();
+    const sortItems = (items) => {
+        const sorted = [...items];
+        switch (sortBy) {
+            case 'dateDesc':
+                sorted.sort((a, b) => new Date(b.dateTime || 0) - new Date(a.dateTime || 0));
+                break;
+            case 'createdAtDesc':
+                sorted.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                break;
+            case 'subjectAz':
+                sorted.sort((a, b) => (a.displaySubject || '').localeCompare(b.displaySubject || ''));
+                break;
+            case 'dateAsc':
+            default:
+                sorted.sort((a, b) => new Date(a.dateTime || 0) - new Date(b.dateTime || 0));
+                break;
+        }
+        return sorted;
+    };
+
+    const filteredData = sortItems(getFilteredAppointments());
 
     if (loading && !refreshing) {
         return (
@@ -151,6 +171,7 @@ export const AllAppointments = ({ filter = "ALL" }) => {
                         location={item.location}
                         status={item.status}
                         online={item.online}
+                        createdAt={item.createdAt}
                         onDetailsClick={() => {
                             setSelected(item);
                             setOpenModal(true);

@@ -40,12 +40,7 @@ export default function VisaoGeralPage() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [statsData, revenueChart, lessonsChart, paymentsData] = await Promise.all([
-                overviewDashService.getStats(),
-                overviewDashService.getMonthlyRevenueChart(),
-                overviewDashService.getLessonsPerDayChart(),
-                overviewDashService.getRecentPaymentsTable()
-            ]);
+            const { stats: statsData, revenueChart, lessonsChart, payments: paymentsData } = await overviewDashService.getAll();
             setStats(statsData);
             setCharts([revenueChart, lessonsChart]);
             setPayments(paymentsData);

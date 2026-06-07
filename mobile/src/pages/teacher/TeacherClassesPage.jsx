@@ -78,6 +78,15 @@ export default function TeacherClassesPage() {
             subject: l.subject || l.disciplina,
             dateTime: `${l.date}T${l.time}`,
             duration: l.lessonDuration ?? l.duration,
+            online: l.online || l.location?.toLowerCase() === 'online',
+            location: l.location,
+            studentPhone: l.studentPhone,
+            studentAddress: l.studentAddress,
+            responsibleName: l.responsibleName,
+            responsiblePhone: l.responsiblePhone,
+            phase: l.phase,
+            schoolGrade: l.schoolGrade,
+            isAdult: l.isAdult,
         });
         setOpenModal(true);
     };
@@ -91,15 +100,22 @@ export default function TeacherClassesPage() {
                 <TeacherAppointmentCard
                     subject={translateSubject(l.subject || l.disciplina)}
                     studentName={l.studentName}
-                    studentPhone={null}
+                    studentPhone={l.studentPhone}
                     studentImageUrl={resolveStudentImage(l.studentImageUrl, l.studentName)}
                     date={new Date(l.date + 'T' + l.time).toLocaleDateString('pt-BR')}
-                    time={l.time}
+                    time={l.time?.substring(0, 5)}
                     duration={`${l.lessonDuration ?? l.duration} min`}
                     location={l.online || l.location?.toLowerCase() === 'online' ? 'Online' : 'Presencial'}
                     status={l.status}
                     online={l.online || l.location?.toLowerCase() === 'online'}
                     onDetailsClick={() => handleDetails(l)}
+                    studentAddress={l.studentAddress}
+                    responsibleName={l.responsibleName}
+                    responsiblePhone={l.responsiblePhone}
+                    studentAge={l.studentAge}
+                    isAdult={l.isAdult}
+                    phase={l.phase}
+                    schoolGrade={l.schoolGrade}
                 />
             </View>
         ));
@@ -113,15 +129,22 @@ export default function TeacherClassesPage() {
                 <TeacherAppointmentCard
                     subject={translateSubject(l.subject || l.disciplina)}
                     studentName={l.studentName}
-                    studentPhone={null}
+                    studentPhone={l.studentPhone}
                     studentImageUrl={resolveStudentImage(l.studentImageUrl, l.studentName)}
                     date={new Date(l.date + 'T' + l.time).toLocaleDateString('pt-BR')}
-                    time={l.time}
+                    time={l.time?.substring(0, 5)}
                     duration={`${l.duration ?? l.lessonDuration} min`}
                     location={l.online || l.location?.toLowerCase() === 'online' ? 'Online' : 'Presencial'}
                     status={l.status}
                     online={l.online || l.location?.toLowerCase() === 'online'}
                     onDetailsClick={() => handleDetails(l)}
+                    studentAddress={l.studentAddress}
+                    responsibleName={l.responsibleName}
+                    responsiblePhone={l.responsiblePhone}
+                    studentAge={l.studentAge}
+                    isAdult={l.isAdult}
+                    phase={l.phase}
+                    schoolGrade={l.schoolGrade}
                 />
             </View>
         ));

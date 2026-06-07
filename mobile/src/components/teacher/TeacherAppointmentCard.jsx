@@ -6,6 +6,8 @@ import {
     MapPin,
     User,
     Phone,
+    BookOpen,
+    ShieldCheck,
 } from "lucide-react-native";
 import { StatusBadge, statusStyles } from "../common/StatusBadge";
 import { formatPhoneNumber } from "../../utils/phoneUtils";
@@ -22,9 +24,20 @@ export const TeacherAppointmentCard = ({
     onDetailsClick = () => { },
     studentImageUrl = "",
     studentPhone = null,
+    studentAddress = null,
+    responsibleName = null,
+    responsiblePhone = null,
+    studentAge = null,
+    isAdult = null,
+    phase = null,
+    schoolGrade = null,
 }) => {
-    const locationDisplay = online ? "Online" : location;
+    const locationDisplay = online ? "Online" : (location || "Presencial");
     const borderColor = statusStyles[status]?.rawColor || "#22c55e";
+    const showResponsible = !isAdult && responsibleName;
+    const showAddress = !online && studentAddress;
+
+    const phaseLabel = [phase, schoolGrade].filter(Boolean).join(' • ');
 
     return (
         <View style={[styles.card, { borderTopColor: borderColor }]}>
@@ -55,6 +68,13 @@ export const TeacherAppointmentCard = ({
                 </View>
             </View>
 
+            {phaseLabel ? (
+                <View style={styles.phaseBadge}>
+                    <BookOpen size={12} color="#6D28D9" />
+                    <Text style={styles.phaseBadgeText}>{phaseLabel}</Text>
+                </View>
+            ) : null}
+
             <View style={styles.detailsContainer}>
                 <View style={styles.detailRow}>
                     <Calendar size={16} color="#3970B7" style={{ marginRight: 8 }} />
@@ -70,12 +90,28 @@ export const TeacherAppointmentCard = ({
                     <MapPin size={16} color="#3970B7" style={{ marginRight: 8 }} />
                     <Text style={styles.detailText}>{locationDisplay}</Text>
                 </View>
-                {studentPhone && (
+                {showAddress && (
+                    <View style={styles.addressRow}>
+                        <MapPin size={14} color="#059669" style={{ marginRight: 8, marginTop: 2 }} />
+                        <Text style={styles.addressText}>{studentAddress}</Text>
+                    </View>
+                )}
+                {showResponsible ? (
+                    <View style={styles.responsibleSection}>
+                        <ShieldCheck size={14} color="#B45309" style={{ marginRight: 6 }} />
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.responsibleLabel}>Responsável: {responsibleName}</Text>
+                            {responsiblePhone && (
+                                <Text style={styles.responsiblePhone}>{formatPhoneNumber(responsiblePhone)}</Text>
+                            )}
+                        </View>
+                    </View>
+                ) : studentPhone ? (
                     <View style={styles.detailRow}>
                         <Phone size={16} color="#3970B7" style={{ marginRight: 8 }} />
                         <Text style={styles.detailText}>{formatPhoneNumber(studentPhone)}</Text>
                     </View>
-                )}
+                ) : null}
             </View>
 
             <TouchableOpacity
@@ -154,8 +190,59 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     detailText: {
-        color: '#4B5563', // gray-600
-        fontSize: 14, // text-sm
+        color: '#4B5563',
+        fontSize: 14,
+    },
+    addressRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#ECFDF5',
+        borderRadius: 6,
+        padding: 8,
+        marginTop: 4,
+    },
+    addressText: {
+        color: '#065F46',
+        fontSize: 13,
+        flex: 1,
+    },
+    responsibleSection: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#FFFBEB',
+        borderRadius: 6,
+        padding: 8,
+        marginTop: 4,
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+    },
+    responsibleLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#92400E',
+    },
+    responsiblePhone: {
+        fontSize: 12,
+        color: '#B45309',
+        marginTop: 2,
+    },
+    phaseBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: '#F5F3FF',
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        alignSelf: 'flex-start',
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#DDD6FE',
+    },
+    phaseBadgeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#6D28D9',
     },
     button: {
         width: '100%',

@@ -5,6 +5,8 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft } from 'lucide-react-native';
 import { AlertModal } from '../../components/ui/AlertModal';
 import { useAlert } from '../../hooks/useAlert';
+import { studentService } from '../../services/studentService';
+import { authService } from '../../services/authService';
 
 // Import Wizard Steps
 import ClassDetailsForm from '../../components/student/appointment-create/ClassDetailsForm';
@@ -41,6 +43,7 @@ export default function AppointmentCreatePage() {
     const { alertConfig, showAlert, hideAlert } = useAlert();
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState(createInitialFormData);
+    const [profileIncomplete, setProfileIncomplete] = useState(false);
 
     const Step = steps[currentStep];
 
@@ -70,8 +73,47 @@ export default function AppointmentCreatePage() {
         useCallback(() => {
             setCurrentStep(0);
             setFormData(createInitialFormData());
-            hideAlert();
-        }, [hideAlert])
+            setProfileIncomplete(false);
+
+            const checkProfile = async () => {
+                try {
+                    const studentId = await authService.getUserId();
+                    if (!studentId) return;
+                    const data = await studentService.getById(studentId);
+
+                    const requiredFields = [
+                        data.name, data.email, data.dateBirth,
+                        data.schoolGrade, data.cellphoneNumber, data.schoolName,
+                        data.cep, data.rua, data.cidade, data.estado,
+                    ];
+                    const isComplete = requiredFields.every(Boolean);
+
+                    if (!isComplete) {
+                        setProfileIncomplete(true);
+                        showAlert('warning', 'Cadastro Incompleto', 'Complete seu cadastro antes de agendar uma aula. Preencha todos os dados pessoais e endereço.', [
+                            { text: 'Completar Cadastro', onPress: () => { hideAlert(); navigation.navigate('Profile', { screen: 'CompleteStudentRegistration' }); } }
+                        ]);
+                    } else {
+                        setProfileIncomplete(false);
+                        setFormData(prev => ({
+                            ...prev,
+                            endereco: {
+                                cep: data.cep || '',
+                                rua: data.rua || '',
+                                numero: data.numero || '',
+                                complemento: data.complemento || '',
+                                bairro: data.bairro || '',
+                                cidade: data.cidade || '',
+                                estado: data.estado || '',
+                            }
+                        }));
+                    }
+                } catch (e) {
+                    // Student data not available
+                }
+            };
+            checkProfile();
+        }, [])
     );
 
     // Calculate total logic (simplified)
@@ -110,6 +152,7 @@ export default function AppointmentCreatePage() {
                 ))}
             </View>
 
+            {!profileIncomplete && (
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <Text style={styles.stepTitle}>{Step.title}</Text>
 
@@ -120,7 +163,8 @@ export default function AppointmentCreatePage() {
                     onNext={goNext}
                 />
             </ScrollView>
-            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={hideAlert} buttons={alertConfig.buttons} />
+            )}
+            <AlertModal visible={alertConfig.visible} type={alertConfig.type} title={alertConfig.title} message={alertConfig.message} onClose={() => { if (profileIncomplete) { navigation.navigate('Profile', { screen: 'CompleteStudentRegistration' }); } hideAlert(); }} buttons={alertConfig.buttons} />
         </View>
     );
 }

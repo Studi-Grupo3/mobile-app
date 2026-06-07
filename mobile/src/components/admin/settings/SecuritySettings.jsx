@@ -4,24 +4,26 @@ import { SaveButton } from './SaveButton';
 import { AlertModal } from '../../ui/AlertModal';
 import { useAlert } from '../../../hooks/useAlert';
 import { adminSettingsService } from '../../../services/dashboard/adminSettingsService';
+import { useAuth } from '../../../context/authContext';
 
 export function SecuritySettings() {
+    const { logout } = useAuth();
     const [security, setSecurity] = useState({
         email: '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     });
+    const [originalEmail, setOriginalEmail] = useState('');
     const [loading, setLoading] = useState(true);
     const { alertConfig, showAlert, hideAlert } = useAlert();
 
     useEffect(() => {
         adminSettingsService.get()
             .then(data => {
-                setSecurity(prev => ({
-                    ...prev,
-                    email: data.email || ''
-                }));
+                const email = data.email || '';
+                setSecurity(prev => ({ ...prev, email }));
+                setOriginalEmail(email);
             })
             .catch(err => console.log('Erro ao carregar segurança:', err))
             .finally(() => setLoading(false));
@@ -47,13 +49,22 @@ export function SecuritySettings() {
                 payload.confirmPassword = security.confirmPassword;
             }
             await adminSettingsService.patch(payload);
-            showAlert('success', 'Sucesso', 'Alterações salvas com sucesso!');
-            setSecurity(prev => ({
-                ...prev,
-                currentPassword: '',
-                newPassword: '',
-                confirmPassword: ''
-            }));
+
+            const emailChanged = security.email && security.email !== originalEmail;
+            if (emailChanged) {
+                showAlert('success', 'Email Alterado',
+                    'Email alterado com sucesso! Você precisa fazer login novamente com o novo email.',
+                    [{ text: 'Sair', onPress: () => logout() }]
+                );
+            } else {
+                showAlert('success', 'Sucesso', 'Alterações salvas com sucesso!');
+                setSecurity(prev => ({
+                    ...prev,
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                }));
+            }
         } catch (err) {
             console.error('Erro ao atualizar segurança:', err);
             showAlert('error', 'Erro', err.message || 'Falha ao salvar alterações.');

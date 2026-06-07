@@ -49,11 +49,11 @@ export const appointmentCreateService = {
             payload.lessonDuration = parseDurationToMinutes(data.duration);
         }
 
-        if (data.location) {
-            payload.location = data.location === 'home' ? 'Presencial' : 'Online';
+        if (data.classModel) {
+            payload.location = data.classModel === 'home' ? 'Presencial' : 'Online';
         }
 
-        if (data.location === 'home' && data.endereco) {
+        if (data.classModel === 'home' && data.endereco) {
             payload.endereco = {
                 rua: data.endereco.rua || '',
                 cidade: data.endereco.cidade || '',

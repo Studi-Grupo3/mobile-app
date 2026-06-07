@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from "react-native";
 import { BookOpen, Clock, Calendar, CreditCard, CheckCircle } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { appointmentCreateService } from "../../../services/appointmentCreateService";
+import { studentService } from "../../../services/studentService";
 import { parseDurationToMinutes } from "../../../utils/date";
 import Constants from 'expo-constants';
 import { AlertModal } from "../../ui/AlertModal";
@@ -12,9 +14,28 @@ import { useAlert } from "../../../hooks/useAlert";
 const PAYMENT_MOCK = Constants.expoConfig?.extra?.PAYMENT_MOCK === 'true' || Constants.expoConfig?.extra?.PAYMENT_MOCK === true;
 // ═════════════════════════════════════════════════════════════
 
+const DEMO_ENDERECO = {
+    cep: '01310100',
+    rua: 'Avenida Paulista',
+    numero: '1000',
+    complemento: 'Apto 42',
+    bairro: 'Bela Vista',
+    cidade: 'São Paulo',
+    estado: 'SP',
+};
+
+const DEMO_PAGAMENTO = {
+    numero: '4111111111111111',
+    validade: '12/28',
+    cvv: '123',
+    nomeCartao: 'DEMO STUDI',
+    method: 'credito',
+};
+
 export default function Payment({ data, onUpdate, onNext }) {
     const navigation = useNavigation();
-    const [step, setStep] = useState("endereco");
+    const isPresencial = data.classModel === 'home';
+    const [step, setStep] = useState(isPresencial ? "endereco" : "pagamento");
     const [paymentMethod, setPaymentMethod] = useState(data.pagamento.method || "credito");
     const [cep, setCep] = useState(data.endereco.cep || "");
     const [endereco, setEndereco] = useState({ ...data.endereco });
@@ -25,6 +46,30 @@ export default function Payment({ data, onUpdate, onNext }) {
 
     const lessonDurationLocal = parseDurationToMinutes(data.duration || "");
     const totalValueLocal = lessonDurationLocal * 1;
+
+    useEffect(() => {
+        if (data.classModel === 'home' && !data.endereco?.rua) {
+            AsyncStorage.getItem('userId').then(id => {
+                if (!id) return;
+                studentService.getById(Number(id)).then(student => {
+                    if (student?.rua) {
+                        const profileAddr = {
+                            cep: student.cep || '',
+                            rua: student.rua || '',
+                            numero: student.numero || '',
+                            complemento: student.complemento || '',
+                            bairro: student.bairro || '',
+                            cidade: student.cidade || '',
+                            estado: student.estado || '',
+                        };
+                        setCep(profileAddr.cep);
+                        setEndereco(profileAddr);
+                        onUpdate({ endereco: profileAddr });
+                    }
+                }).catch(() => {});
+            });
+        }
+    }, []);
 
     const handleCepChange = async (text) => {
         const onlyDigits = text.replace(/\D/g, "");
@@ -64,6 +109,13 @@ export default function Payment({ data, onUpdate, onNext }) {
     const handleFieldChange = (field, value) => {
         onUpdate({
             pagamento: { ...data.pagamento, [field]: value },
+        });
+    };
+
+    const fillDemo = () => {
+        setPaymentMethod(DEMO_PAGAMENTO.method);
+        onUpdate({
+            pagamento: { ...data.pagamento, ...DEMO_PAGAMENTO },
         });
     };
 
@@ -122,7 +174,7 @@ export default function Payment({ data, onUpdate, onNext }) {
                 </View>
                 <View style={styles.detailRow}>
                     <Calendar size={16} color="#3970B7" />
-                    <Text style={styles.detailText}>{data.date ? new Date(data.date).toLocaleDateString() : "—"}</Text>
+                    <Text style={styles.detailText}>{data.date ? new Date(data.date).toLocaleDateString('pt-BR') : "—"}</Text>
                 </View>
             </View>
 
@@ -163,8 +215,8 @@ export default function Payment({ data, onUpdate, onNext }) {
 
     return (
         <ScrollView style={styles.container}>
-            <View style={styles.stepTabs}>
-                {["endereco", "pagamento"].map(s => (
+        <View style={styles.stepTabs}>
+                {(isPresencial ? ["endereco", "pagamento"] : ["pagamento"]).map(s => (
                     <TouchableOpacity
                         key={s}
                         onPress={() => setStep(s)}
@@ -181,6 +233,11 @@ export default function Payment({ data, onUpdate, onNext }) {
                         </Text>
                     </TouchableOpacity>
                 ))}
+                {PAYMENT_MOCK && (
+                    <TouchableOpacity onPress={fillDemo} style={styles.demoButton}>
+                        <Text style={styles.demoButtonText}>⚡ Demo</Text>
+                    </TouchableOpacity>
+                )}
             </View>
 
             {step === "endereco" && (
@@ -587,5 +644,20 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    demoButton: {
+        backgroundColor: '#FEF9C3',
+        borderWidth: 1,
+        borderColor: '#FDE047',
+        borderRadius: 8,
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        alignSelf: 'center',
+        marginLeft: 8,
+    },
+    demoButtonText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#854D0E',
     },
 });
