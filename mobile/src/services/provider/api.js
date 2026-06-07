@@ -32,7 +32,10 @@ api.interceptors.response.use(
                 500: 'Erro interno do servidor',
             };
             const message = (data && data.message) || defaultMessages[status] || `Erro ${status}: ${statusText}`;
-            return Promise.reject(new Error(message));
+            const normalizedError = new Error(message);
+            normalizedError.status = status;
+            normalizedError.data = data;
+            return Promise.reject(normalizedError);
         }
         if (error.code === 'ECONNABORTED') {
             return Promise.reject(new Error('Requisição cancelada por timeout'));
