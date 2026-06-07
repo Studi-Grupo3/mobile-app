@@ -12,8 +12,9 @@ import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { overviewDashService } from '../../services/dashboard/overviewDashService';
+import { overviewKpiService } from '../../services/dashboard/overviewKpiService';
 import { insightsService } from '../../services/insightsService';
-import { DollarSign, Users, Clock, CalendarCheck, Brain, X, RefreshCw } from 'lucide-react-native';
+import { DollarSign, Users, Clock, CalendarCheck, Brain, X, RefreshCw, BarChart3 } from 'lucide-react-native';
 import { translatePaymentStatus } from '../../utils/tradutionUtils';
 import { SubjectBadge } from '../../components/admin/SubjectBadge';
 import { useNavigation } from '@react-navigation/native';
@@ -29,6 +30,9 @@ export default function VisaoGeralPage() {
     const [charts, setCharts] = useState([]);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [overviewKpis, setOverviewKpis] = useState([null, null]);
+    const [overviewKpisLoading, setOverviewKpisLoading] = useState([false, false]);
+    const [overviewKpisErrors, setOverviewKpisErrors] = useState([null, null]);
 
     // Insights modal state
     const [modalVisible, setModalVisible] = useState(false);
@@ -37,8 +41,33 @@ export default function VisaoGeralPage() {
     const [insightsGeneratedAt, setInsightsGeneratedAt] = useState('');
     const [insightsError, setInsightsError] = useState('');
 
+    const fetchOverviewKpis = useCallback(async () => {
+        setOverviewKpisLoading([true, true]);
+        setOverviewKpisErrors([null, null]);
+
+        try {
+            const kpis = await overviewKpiService.getAll();
+            setOverviewKpis([kpis[0] ?? null, kpis[1] ?? null]);
+            setOverviewKpisErrors([
+                kpis[0] ? null : 'Sem dados para esta KPI.',
+                kpis[1] ? null : 'Sem dados para esta KPI.',
+            ]);
+        } catch (error) {
+            console.error('Error fetching overview KPIs:', error);
+            setOverviewKpis([null, null]);
+            setOverviewKpisErrors([
+                'Não foi possível carregar esta KPI.',
+                'Não foi possível carregar esta KPI.',
+            ]);
+        } finally {
+            setOverviewKpisLoading([false, false]);
+        }
+    }, []);
+
     const fetchData = useCallback(async () => {
         setLoading(true);
+        fetchOverviewKpis();
+
         try {
             const { stats: statsData, revenueChart, lessonsChart, payments: paymentsData } = await overviewDashService.getAll();
             setStats(statsData);
@@ -49,7 +78,7 @@ export default function VisaoGeralPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [fetchOverviewKpis]);
 
     useEffect(() => {
         fetchData();
@@ -120,6 +149,32 @@ export default function VisaoGeralPage() {
                     subtitle="Agendamentos no Mês"
                     icon={<CalendarCheck size={20} color="#3970B7" />}
                 />
+
+                {overviewKpis.map((kpi, index) => {
+                    const isLoadingKpi = overviewKpisLoading[index];
+                    const kpiError = overviewKpisErrors[index];
+                    const title = isLoadingKpi
+                        ? 'Carregando...'
+                        : kpiError || kpi?.title || 'Sem dados';
+                    const subtitle = kpi?.subtitle || `KPI ${index + 1}`;
+
+                    return (
+                        <StatCard
+                            key={kpi?.id || `overview-kpi-${index + 1}`}
+                            title={title}
+                            subtitle={subtitle}
+                            percentage={kpi?.percentage}
+                            percentageColor={kpi?.percentageColor}
+                            icon={
+                                isLoadingKpi ? (
+                                    <ActivityIndicator size="small" color="#3970B7" />
+                                ) : (
+                                    <BarChart3 size={20} color={kpiError ? '#DC2626' : '#3970B7'} />
+                                )
+                            }
+                        />
+                    );
+                })}
 
                 <TouchableOpacity
                     style={styles.aiInsightsButton}
