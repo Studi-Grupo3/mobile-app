@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowRight } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { teacherService } from '../../services/teacherService';
 
-const CardPanelItem = ({ title, description, buttonLink, colorStyles, route }) => {
+const CardPanelItem = ({ title, description, buttonLink, colorStyles, route, onPress }) => {
     const navigation = useNavigation();
     return (
         <TouchableOpacity
-            onPress={() => navigation.navigate(route)}
+            onPress={() => onPress ? onPress(navigation) : navigation.navigate(route)}
             style={[styles.cardItem, { backgroundColor: colorStyles.bg }]}
         >
             <View>
@@ -31,9 +33,23 @@ export default function TeacherInitialPage() {
     const insets = useSafeAreaInsets();
     const [isCadastroCompleto, setIsCadastroCompleto] = useState(false);
 
-    useEffect(() => {
-        setTimeout(() => setIsCadastroCompleto(true), 500);
+    const checkCadastro = React.useCallback(() => {
+        (async () => {
+            try {
+                const teacherId = await AsyncStorage.getItem('userId');
+                if (!teacherId) return;
+                const data = await teacherService.getById(Number(teacherId));
+                const fields = [data.name, data.email, data.cellphoneNumber, data.dateBirth,
+                    data.academicFormation, data.yearsExperience, data.subjects?.length > 0];
+                const filled = fields.filter(Boolean).length;
+                setIsCadastroCompleto(filled === fields.length);
+            } catch (e) {
+                setIsCadastroCompleto(false);
+            }
+        })();
     }, []);
+
+    useFocusEffect(checkCadastro);
 
     const items = [
         {
@@ -47,7 +63,8 @@ export default function TeacherInitialPage() {
             colorStyles: isCadastroCompleto
                 ? { bg: "#F0FDF4", textTitle: "#16A34A", buttonText: "#16A34A", arrowColor: "#16A34A" } // green-50, green-600
                 : { bg: "#FFF7ED", textTitle: "#F97316", buttonText: "#EA580C", arrowColor: "#EA580C" }, // orange-50, orange-500/600
-            route: "CompleteTeacherRegistration",
+            route: null,
+            onPress: (navigation) => navigation.navigate("Profile", { screen: "CompleteTeacherRegistration" }),
         },
         {
             title: "Aulas",

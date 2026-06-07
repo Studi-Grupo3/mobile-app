@@ -51,14 +51,11 @@ export default function TeacherGraph() {
             .then(([dashboard]) => {
                 const stats = dashboard.stats || dashboard;
                 const totalLessons = stats.totalLessons ?? 0;
-                const cancelledLessons = stats.cancelledLessons ?? 0;
-                const cancellationPct = totalLessons > 0
-                    ? (cancelledLessons / totalLessons * 100)
-                    : 0;
-                const totalHoursWorked = stats.totalHoursWorked ?? 0;
-                const totalStudents = stats.totalStudents ?? 0;
+                const cancellationPct = stats.cancellationPercentage ?? 0;
+                const totalHours = stats.totalHours ?? 0;
                 const completedLessons = stats.completedLessons ?? 0;
                 const upcomingLessons = stats.upcomingLessons ?? 0;
+                const totalStudents = stats.totalStudents ?? 0;
                 const monthlyEarnings = stats.monthlyEarnings ?? 0;
 
                 setMetrics([
@@ -77,12 +74,12 @@ export default function TeacherGraph() {
                     {
                         title: "Cancelamentos",
                         value: `${cancellationPct.toFixed(1)}%`,
-                        subtitle: `${cancelledLessons} aulas`,
+                        subtitle: "do total",
                         icon: <AlertCircle size={20} color="#EF4444" />,
                     },
                     {
                         title: "Horas Trabalhadas",
-                        value: `${totalHoursWorked}h`,
+                        value: `${totalHours}h`,
                         subtitle: "Total acumulado",
                         icon: <Clock size={20} color="#F59E0B" />,
                     },

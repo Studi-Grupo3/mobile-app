@@ -23,9 +23,17 @@ export const AppointmentCard = ({
     onDetailsClick = () => { },
     professorImageUrl = "",
     professorPhone = null,
+    createdAt = null,
 }) => {
-    const locationDisplay = online ? "Online" : location;
+    const locationDisplay = online ? "Online" : (location || "Presencial");
     const borderColor = statusStyles[status]?.rawColor || "#22c55e";
+
+    const formatCreatedAt = (dt) => {
+        if (!dt) return null;
+        const d = new Date(dt);
+        if (isNaN(d.getTime())) return null;
+        return `Agendado em ${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+    };
 
     return (
         <View style={[styles.card, { borderTopColor: borderColor }]}>
@@ -79,6 +87,12 @@ export const AppointmentCard = ({
                     </View>
                 )}
             </View>
+
+            {formatCreatedAt(createdAt) && (
+                <View style={styles.createdAtContainer}>
+                    <Text style={styles.createdAtText}>{formatCreatedAt(createdAt)}</Text>
+                </View>
+            )}
 
             <TouchableOpacity
                 onPress={onDetailsClick}
@@ -187,5 +201,19 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#3970B7',
         fontWeight: 'bold',
+    },
+    createdAtContainer: {
+        backgroundColor: '#F0FDF4',
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#BBF7D0',
+    },
+    createdAtText: {
+        fontSize: 11,
+        color: '#166534',
+        fontWeight: '500',
     },
 });

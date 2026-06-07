@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import {
     format,
     addMonths,
@@ -13,9 +13,13 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { teacherService } from '../../../services/teacherService';
 
 export default function Scheduling({ data, onUpdate, onNext }) {
     const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+    const [timeSlots, setTimeSlots] = useState([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [noAvailability, setNoAvailability] = useState(false);
     const days = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
     const monthStart = startOfMonth(currentMonth);
@@ -39,7 +43,35 @@ export default function Scheduling({ data, onUpdate, onNext }) {
         : [];
 
     const allDays = [...prevDays, ...monthDays, ...nextDays];
-    const timeSlots = ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+
+    useEffect(() => {
+        if (!data.date || !data.professorId) {
+            setTimeSlots([]);
+            setNoAvailability(false);
+            return;
+        }
+        const fetchSlots = async () => {
+            setLoadingSlots(true);
+            setNoAvailability(false);
+            try {
+                const dateStr = format(data.date, 'yyyy-MM-dd');
+                const slots = await teacherService.getAvailableSlots(data.professorId, dateStr);
+                if (slots.length === 0) {
+                    setNoAvailability(true);
+                    setTimeSlots([]);
+                } else {
+                    setTimeSlots(slots);
+                }
+            } catch (err) {
+                console.log("Erro ao buscar horários:", err);
+                setTimeSlots([]);
+                setNoAvailability(true);
+            } finally {
+                setLoadingSlots(false);
+            }
+        };
+        fetchSlots();
+    }, [data.date, data.professorId]);
 
     const selectDate = date => {
         onUpdate({ date });
@@ -107,6 +139,16 @@ export default function Scheduling({ data, onUpdate, onNext }) {
                 <View style={styles.timeSlotsContainer}>
                     {!data.date ? (
                         <Text style={styles.placeholderText}>Selecione uma data para ver os horários</Text>
+                    ) : loadingSlots ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="small" color="#ca8a04" />
+                            <Text style={styles.loadingText}>Carregando horários...</Text>
+                        </View>
+                    ) : noAvailability ? (
+                        <View style={styles.noSlotsContainer}>
+                            <Text style={styles.noSlotsText}>Nenhum horário disponível nesta data.</Text>
+                            <Text style={styles.noSlotsHint}>O professor não tem disponibilidade configurada para este dia.</Text>
+                        </View>
                     ) : (
                         <View style={styles.timeGrid}>
                             {timeSlots.map(ts => (
@@ -275,5 +317,32 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 20,
+    },
+    loadingText: {
+        marginTop: 8,
+        color: '#6b7280',
+        fontSize: 14,
+    },
+    noSlotsContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+    },
+    noSlotsText: {
+        color: '#ef4444',
+        fontSize: 14,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+    noSlotsHint: {
+        color: '#6b7280',
+        fontSize: 12,
+        textAlign: 'center',
+        marginTop: 4,
     }
 });

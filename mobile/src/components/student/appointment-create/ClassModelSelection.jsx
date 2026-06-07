@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import { Laptop, MapPin, Check } from 'lucide-react-native';
 
 export default function ClassModelSelection({ data, onUpdate, onNext }) {
-    const choice = data.location;
+    const choice = data.classModel;
     const enabled = Boolean(choice);
 
     const select = model => {
-        onUpdate({ location: model });
+        onUpdate({ classModel: model });
     };
 
     const ModelCard = ({ id, icon: Icon, title, desc, points }) => {

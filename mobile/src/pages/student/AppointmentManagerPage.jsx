@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-    ChevronDown, SlidersHorizontal, X, Check, RefreshCw,
+    ChevronDown, SlidersHorizontal, X, Check, RefreshCw, ArrowUpDown,
 } from 'lucide-react-native';
 import { UpcomingAppointments } from '../../components/student/appointment-manager/UpcomingAppointments';
 import { AllAppointments } from '../../components/student/appointment-manager/AllAppointments';
@@ -42,6 +42,13 @@ const MODALITIES = [
     { id: 'ALL', label: 'Todas' },
     { id: 'ONLINE', label: 'Online' },
     { id: 'OFFLINE', label: 'Presencial' },
+];
+
+const SORT_OPTIONS = [
+    { id: 'dateAsc', label: 'Data da aula (próxima)' },
+    { id: 'dateDesc', label: 'Data da aula (mais antiga)' },
+    { id: 'createdAtDesc', label: 'Agendado recentemente' },
+    { id: 'subjectAz', label: 'Matéria A-Z' },
 ];
 
 // ── Tab Nav ──
@@ -132,6 +139,7 @@ export default function AppointmentManagerPage() {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [subjectFilter, setSubjectFilter] = useState('ALL');
     const [modalityFilter, setModalityFilter] = useState('ALL');
+    const [sortBy, setSortBy] = useState('dateAsc');
     const [showFilters, setShowFilters] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -145,6 +153,7 @@ export default function AppointmentManagerPage() {
         setStatusFilter('ALL');
         setSubjectFilter('ALL');
         setModalityFilter('ALL');
+        setSortBy('dateAsc');
     };
 
     const handleTabChange = (t) => {
@@ -223,16 +232,22 @@ export default function AppointmentManagerPage() {
                             value={modalityFilter}
                             onSelect={setModalityFilter}
                         />
+                        <DropdownSelect
+                            label="Ordenar por"
+                            options={SORT_OPTIONS}
+                            value={sortBy}
+                            onSelect={setSortBy}
+                        />
                     </View>
                 )}
 
                 {/* Content */}
                 <View style={styles.tabContent}>
                     {activeTab === 'upcoming' && (
-                        <UpcomingAppointments key={refreshKey} filter={compositeFilter} />
+                        <UpcomingAppointments key={refreshKey} filter={compositeFilter} sortBy={sortBy} />
                     )}
                     {activeTab === 'past' && (
-                        <AllAppointments key={refreshKey} filter={compositeFilter} />
+                        <AllAppointments key={refreshKey} filter={compositeFilter} sortBy={sortBy} />
                     )}
                     {activeTab === 'calendar' && (
                         <CalendarView key={refreshKey} filter={compositeFilter} setActiveTab={setActiveTab} />

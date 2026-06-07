@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Modal, StyleSheet, Image } from "react-native";
-import { X, Calendar, Clock, MapPin, DollarSign, Phone } from "lucide-react-native";
+import { X, Calendar, Clock, MapPin, DollarSign, Phone, BookOpen, ShieldCheck } from "lucide-react-native";
 import { StatusBadge } from "./StatusBadge";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { AlertModal } from "../ui/AlertModal";
@@ -119,23 +119,51 @@ export const AppointmentModal = ({
 
                             {/* Details */}
                             <View style={styles.detailsContainer}>
+                                {/* Phase Badge */}
+                                {isTeacherView && (appointment.phase || appointment.schoolGrade) && (
+                                    <View style={styles.phaseBadge}>
+                                        <BookOpen size={12} color="#6D28D9" />
+                                        <Text style={styles.phaseBadgeText}>
+                                            {[appointment.phase, appointment.schoolGrade].filter(Boolean).join(' \u2022 ')}
+                                        </Text>
+                                    </View>
+                                )}
                                 <View style={styles.detailRow}>
                                     <Calendar size={20} color="#3970B7" style={styles.detailIcon} />
                                     <Text style={styles.detailText}>{formattedDate}</Text>
                                 </View>
                                 <View style={styles.detailRow}>
                                     <Clock size={20} color="#3970B7" style={styles.detailIcon} />
-                                    <Text style={styles.detailText}>{formattedTime} • Duração: {appointment.duration} min</Text>
+                                    <Text style={styles.detailText}>{formattedTime} {"\u2022"} Duração: {appointment.duration} min</Text>
                                 </View>
                                 <View style={styles.detailRow}>
                                     <MapPin size={20} color="#3970B7" style={styles.detailIcon} />
-                                    <Text style={styles.detailText}>{appointment.online ? "Online" : appointment.location}</Text>
+                                    <Text style={styles.detailText}>
+                                        {appointment.online ? "Online" : (appointment.location || "Presencial")}
+                                    </Text>
                                 </View>
+                                {!appointment.online && appointment.studentAddress && isTeacherView && (
+                                    <View style={styles.addressRow}>
+                                        <MapPin size={14} color="#059669" style={{ marginRight: 8, marginTop: 2 }} />
+                                        <Text style={styles.addressText}>{appointment.studentAddress}</Text>
+                                    </View>
+                                )}
+                                {isTeacherView && !appointment.isAdult && appointment.responsibleName && (
+                                    <View style={styles.responsibleSection}>
+                                        <ShieldCheck size={14} color="#D97706" style={{ marginRight: 8, marginTop: 2 }} />
+                                        <View>
+                                            <Text style={styles.responsibleLabel}>Responsável: {appointment.responsibleName}</Text>
+                                            {appointment.responsiblePhone && (
+                                                <Text style={styles.responsiblePhone}>{formatPhoneNumber(appointment.responsiblePhone)}</Text>
+                                            )}
+                                        </View>
+                                    </View>
+                                )}
                                 {(appointment.professorPhone || appointment.studentPhone) && (
                                     <View style={styles.detailRow}>
                                         <Phone size={20} color="#3970B7" style={styles.detailIcon} />
                                         <Text style={styles.detailText}>
-                                            {formatPhoneNumber(appointment.professorPhone || appointment.studentPhone)}
+                                            {formatPhoneNumber(isTeacherView ? appointment.studentPhone : appointment.professorPhone || appointment.studentPhone)}
                                         </Text>
                                     </View>
                                 )}
@@ -278,6 +306,56 @@ const styles = StyleSheet.create({
     detailText: {
         color: '#4B5563', // gray-600
         fontSize: 16, // text-base
+    },
+    phaseBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F3FF',
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        alignSelf: 'flex-start',
+        gap: 6,
+        borderWidth: 1,
+        borderColor: '#DDD6FE',
+    },
+    phaseBadgeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#6D28D9',
+    },
+    addressRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#ECFDF5',
+        borderRadius: 6,
+        padding: 10,
+        marginTop: 4,
+    },
+    addressText: {
+        color: '#065F46',
+        fontSize: 14,
+        flex: 1,
+    },
+    responsibleSection: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#FFFBEB',
+        borderRadius: 6,
+        padding: 10,
+        marginTop: 4,
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+    },
+    responsibleLabel: {
+        color: '#92400E',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    responsiblePhone: {
+        color: '#B45309',
+        fontSize: 14,
+        marginTop: 2,
     },
     actionsContainer: {
         marginTop: 24,

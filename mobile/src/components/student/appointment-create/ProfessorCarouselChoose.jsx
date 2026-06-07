@@ -13,6 +13,13 @@ const subjectMap = {
     SCIENCE: "Ciências",
     CHEMISTRY: "Química",
     PHYSICS: "Física",
+    BIOLOGY: "Biologia",
+    ENGLISH: "Inglês",
+    SPANISH: "Espanhol",
+    ART: "Arte",
+    PHILOSOPHY: "Filosofia",
+    SOCIOLOGY: "Sociologia",
+    LITERACY: "Alfabetização",
 };
 
 const ADMIN_EMAIL = 'admin@exemplo.com';
@@ -61,7 +68,9 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
         const IMAGE_SOURCE_CONFIG = { useMock: true };
         const allowedSubjects = [
             "PORTUGUESE", "MATHEMATICS", "HISTORY", "GEOGRAPHY",
-            "SCIENCE", "PHYSICS", "CHEMISTRY",
+            "SCIENCE", "PHYSICS", "CHEMISTRY", "BIOLOGY",
+            "ENGLISH", "SPANISH", "ART", "PHILOSOPHY",
+            "SOCIOLOGY", "LITERACY",
         ];
 
         const safeList = Array.isArray(list) ? list : [];
@@ -109,7 +118,7 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
         if (!data.subject) return professors;
         return professors.filter((p) =>
             p.subjectsTranslated?.some(
-                (s) => s.toLowerCase() === data.subject.toLowerCase()
+                (s) => s && s.toLowerCase() === data.subject.toLowerCase()
             )
         );
     }, [data.subject, professors]);
