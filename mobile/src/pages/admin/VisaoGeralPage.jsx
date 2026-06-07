@@ -11,7 +11,7 @@ import {
 import { StatCard } from '../../components/admin/StatCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
-import { overviewDashService } from '../../services/dashboard/overviewDashService';
+import { kpiService, getKpiErrorMessage } from '../../services/dashboard/kpiService';
 import { insightsService } from '../../services/insightsService';
 import { DollarSign, Users, Clock, CalendarCheck, Brain, X, RefreshCw } from 'lucide-react-native';
 import { translatePaymentStatus } from '../../utils/tradutionUtils';
@@ -29,6 +29,7 @@ export default function VisaoGeralPage() {
     const [charts, setCharts] = useState([]);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [kpiError, setKpiError] = useState('');
 
     // Insights modal state
     const [modalVisible, setModalVisible] = useState(false);
@@ -39,13 +40,23 @@ export default function VisaoGeralPage() {
 
     const fetchData = useCallback(async () => {
         setLoading(true);
+        setKpiError('');
         try {
-            const { stats: statsData, revenueChart, lessonsChart, payments: paymentsData } = await overviewDashService.getAll();
+            const { stats: statsData, revenueChart, lessonsChart, payments: paymentsData } = await kpiService.getAll();
             setStats(statsData);
             setCharts([revenueChart, lessonsChart]);
             setPayments(paymentsData);
         } catch (error) {
-            console.error('Error fetching overview data:', error);
+            console.error('Error fetching KPI data:', error);
+            setKpiError(getKpiErrorMessage(error));
+            setStats({
+                totalRevenue: 0,
+                totalTeachers: 0,
+                pendingAmount: 0,
+                totalAppointments: 0,
+            });
+            setCharts([]);
+            setPayments([]);
         } finally {
             setLoading(false);
         }
@@ -90,6 +101,10 @@ export default function VisaoGeralPage() {
         handleInsightsPress();
     }
 
+    const formatCurrency = (value) => `R$ ${value?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`;
+    const getKpiTitle = (value) => kpiError || value;
+    const kpiTitleStyle = kpiError ? styles.kpiErrorTitle : undefined;
+
     if (loading)
         return (
             <View style={styles.centered}>
@@ -101,23 +116,27 @@ export default function VisaoGeralPage() {
         <>
             <ScrollView style={styles.container} contentContainerStyle={styles.content}>
                 <StatCard
-                    title={`R$ ${stats.totalRevenue?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
+                    title={getKpiTitle(formatCurrency(stats.totalRevenue))}
                     subtitle="Receita Total do Mês"
+                    titleStyle={kpiTitleStyle}
                     icon={<DollarSign size={20} color="#3970B7" />}
                 />
                 <StatCard
-                    title={stats.totalTeachers}
+                    title={getKpiTitle(stats.totalTeachers)}
                     subtitle="Professores Cadastrados"
+                    titleStyle={kpiTitleStyle}
                     icon={<Users size={20} color="#3970B7" />}
                 />
                 <StatCard
-                    title={`R$ ${stats.pendingAmount?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}`}
+                    title={getKpiTitle(formatCurrency(stats.pendingAmount))}
                     subtitle="Valor Pendente de Pagamento"
+                    titleStyle={kpiTitleStyle}
                     icon={<Clock size={20} color="#E8A317" />}
                 />
                 <StatCard
-                    title={stats.totalAppointments}
+                    title={getKpiTitle(stats.totalAppointments)}
                     subtitle="Agendamentos no Mês"
+                    titleStyle={kpiTitleStyle}
                     icon={<CalendarCheck size={20} color="#3970B7" />}
                 />
 
@@ -255,6 +274,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    kpiErrorTitle: {
+        color: '#DC2626',
+        fontSize: 14,
+        lineHeight: 20,
     },
 
     // ── AI Button ──

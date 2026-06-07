@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export function StatCard({ title, subtitle, percentage, percentageColor, icon }) {
+export function StatCard({ title, subtitle, percentage, percentageColor, icon, titleStyle }) {
     return (
         <View style={styles.card}>
             <View style={styles.content}>
                 <Text style={styles.subtitle}>{subtitle}</Text>
-                <Text style={styles.title}>{title}</Text>
+                <Text style={[styles.title, titleStyle]}>{title}</Text>
                 {percentage && (
                     <Text style={[styles.percentage, getPercentageStyle(percentageColor)]}>
                         {percentage}
