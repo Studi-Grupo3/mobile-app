@@ -373,10 +373,11 @@ export default function ContentStudentRegistration({ current, formData, onChange
                                 const geo = await resp.json();
                                 if (geo.address) {
                                     const a = geo.address;
+                                    if ((a.country_code || '').toLowerCase() !== 'br') return;
                                     onChange("rua", a.road || "");
                                     onChange("bairro", a.suburb || a.neighbourhood || "");
                                     onChange("cidade", a.city || a.town || a.village || "");
-                                    onChange("estado", a.state_code?.toUpperCase() || a.state?.substring(0, 2)?.toUpperCase() || "");
+                                    onChange("estado", a['ISO3166-2-lvl4']?.split('-')?.[1]?.toUpperCase() || "");
                                     if (a.postcode) onChange("cep", a.postcode.replace(/\D/g, ""));
                                 }
                             } catch (e) {

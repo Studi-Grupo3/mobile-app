@@ -1,6 +1,10 @@
 import { api } from '../provider/api';
 import { translatePaymentStatus, translateSubject } from '../../utils/tradutionUtils';
 
+function minutesToHours(value) {
+    return typeof value === 'number' ? Math.round((value / 60) * 100) / 100 : value;
+}
+
 export const paymentDashService = {
     async fetchDashboard(month, year) {
         const response = await api.get('/dashboard/payments', {
@@ -28,7 +32,7 @@ export const paymentDashService = {
                 name: item.name,
                 subject: item.subject,
                 valuePerHour: item.valuePerHour,
-                hours: item.hours,
+                hours: minutesToHours(item.hours),
                 total: item.total,
                 status: item.status
             }));
