@@ -238,7 +238,7 @@ export const mockPaymentDashService = {
             name: item.name,
             subject: item.subject,
             valuePerHour: item.valuePerHour,
-            hours: minutesToHours(item.hours),
+            hours: item.hours,
             total: item.total,
             status: item.status,
         }));

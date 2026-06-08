@@ -2,7 +2,7 @@ import { api } from '../provider/api';
 import { translateSubject } from '../../utils/tradutionUtils';
 
 function minutesToHours(value) {
-    return typeof value === 'number' ? value / 60 : value;
+    return typeof value === 'number' ? Math.round(value / 60) : value;
 }
 
 export const teacherDashService = {

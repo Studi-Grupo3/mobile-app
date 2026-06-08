@@ -52,13 +52,8 @@ export default function TeacherGraph() {
                 const stats = dashboard.stats || dashboard;
                 const totalLessons = stats.totalLessons ?? 0;
                 const cancellationPct = stats.cancellationPercentage ?? 0;
-                const totalHours = typeof stats.totalHours === 'number'
-                    ? stats.totalHours
-                    : typeof stats.totalHoursWorked === 'number'
-                        ? stats.totalHoursWorked / 60
-                        : typeof stats.totalHorasTrabalhadas === 'number'
-                            ? stats.totalHorasTrabalhadas / 60
-                            : 0;
+                const rawMinutes = stats.totalHours ?? stats.totalHoursWorked ?? stats.totalHorasTrabalhadas ?? 0;
+                const totalHours = Math.round(rawMinutes / 60);
                 const completedLessons = stats.completedLessons ?? 0;
                 const upcomingLessons = stats.upcomingLessons ?? 0;
                 const totalStudents = stats.totalStudents ?? 0;

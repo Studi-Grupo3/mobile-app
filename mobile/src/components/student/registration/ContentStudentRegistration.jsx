@@ -364,7 +364,11 @@ export default function ContentStudentRegistration({ current, formData, onChange
                         onPress={async () => {
                             try {
                                 const { status } = await Location.requestForegroundPermissionsAsync();
-                                if (status !== 'granted') return;
+                                if (status !== 'granted') {
+                                    showAlert({ title: 'Permissão negada', text: 'Permita o acesso à localização nas configurações.', icon: 'error' });
+                                    return;
+                                }
+                                showAlert({ title: 'Aguarde', text: 'Obtendo sua localização...', icon: 'info' });
                                 const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
                                 const resp = await fetch(
                                     `https://nominatim.openstreetmap.org/reverse?lat=${loc.coords.latitude}&lon=${loc.coords.longitude}&format=json&addressdetails=1`,
@@ -373,15 +377,20 @@ export default function ContentStudentRegistration({ current, formData, onChange
                                 const geo = await resp.json();
                                 if (geo.address) {
                                     const a = geo.address;
-                                    if ((a.country_code || '').toLowerCase() !== 'br') return;
+                                    if ((a.country_code || '').toLowerCase() !== 'br') {
+                                        showAlert({ title: 'Localização inválida', text: 'Localização detectada fora do Brasil. Preencha manualmente.', icon: 'error' });
+                                        return;
+                                    }
                                     onChange("rua", a.road || "");
                                     onChange("bairro", a.suburb || a.neighbourhood || "");
                                     onChange("cidade", a.city || a.town || a.village || "");
                                     onChange("estado", a['ISO3166-2-lvl4']?.split('-')?.[1]?.toUpperCase() || "");
                                     if (a.postcode) onChange("cep", a.postcode.replace(/\D/g, ""));
+                                    showAlert({ title: 'Pronto', text: 'Endereço preenchido com sucesso!', icon: 'success' });
                                 }
                             } catch (e) {
                                 console.log("Erro ao obter localização:", e);
+                                showAlert({ title: 'Erro', text: 'Não foi possível obter a localização. Verifique se o GPS está ativado.', icon: 'error' });
                             }
                         }}
                     >
