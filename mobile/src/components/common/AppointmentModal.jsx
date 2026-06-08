@@ -124,7 +124,7 @@ export const AppointmentModal = ({
                                     <View style={styles.phaseBadge}>
                                         <BookOpen size={12} color="#6D28D9" />
                                         <Text style={styles.phaseBadgeText}>
-                                            {[appointment.phase, appointment.schoolGrade].filter(Boolean).join(' \u2022 ')}
+                                            {(appointment.schoolGrade && /ensino|fundamental|médio/i.test(appointment.schoolGrade)) ? appointment.schoolGrade : [appointment.phase, appointment.schoolGrade].filter(Boolean).join(' \u2022 ')}
                                         </Text>
                                     </View>
                                 )}

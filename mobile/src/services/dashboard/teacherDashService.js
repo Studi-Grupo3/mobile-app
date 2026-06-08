@@ -1,6 +1,10 @@
 import { api } from '../provider/api';
 import { translateSubject } from '../../utils/tradutionUtils';
 
+function minutesToHours(value) {
+    return typeof value === 'number' ? Math.round(value / 60) : value;
+}
+
 export const teacherDashService = {
     async fetchDashboard() {
         const response = await api.get('/dashboards');
@@ -12,9 +16,9 @@ export const teacherDashService = {
         return {
             totalTeachers: data.stats.totalProfessores,
             activeTeachers: Array.isArray(data.teacherTableValues) ? data.teacherTableValues.length : 0,
-            totalHoursWorked: data.stats.totalHorasTrabalhadas,
+            totalHoursWorked: minutesToHours(data.stats.totalHorasTrabalhadas),
             averageHourlyRate: data.stats.valorHoraMedio,
-            averageMonthlyHours: data.stats.mediaHorasMes
+            averageMonthlyHours: minutesToHours(data.stats.mediaHorasMes)
         };
     },
 
@@ -51,7 +55,7 @@ export const teacherDashService = {
             return {
                 name: item.name,
                 subject: rawSubject,
-                hours: item.hoursWorked,
+                hours: minutesToHours(item.hoursWorked),
                 value: numericRate,
                 status: item.status,
                 actions: '…'

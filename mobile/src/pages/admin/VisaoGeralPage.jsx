@@ -9,11 +9,13 @@ import {
     View,
 } from 'react-native';
 import { StatCard } from '../../components/admin/StatCard';
+import { KpiCard } from '../../components/admin/KpiCard';
 import { ChartSection } from '../../components/admin/ChartSection';
 import { TableSection } from '../../components/admin/TableSection';
 import { overviewDashService } from '../../services/dashboard/overviewDashService';
+import { kpiService } from '../../services/dashboard/kpiService';
 import { insightsService } from '../../services/insightsService';
-import { DollarSign, Users, Clock, CalendarCheck, Brain, X, RefreshCw } from 'lucide-react-native';
+import { DollarSign, Users, Clock, CalendarCheck, Brain, X, RefreshCw, GraduationCap, AlertTriangle } from 'lucide-react-native';
 import { translatePaymentStatus } from '../../utils/tradutionUtils';
 import { SubjectBadge } from '../../components/admin/SubjectBadge';
 import { useNavigation } from '@react-navigation/native';
@@ -29,6 +31,11 @@ export default function VisaoGeralPage() {
     const [charts, setCharts] = useState([]);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [kpis, setKpis] = useState({
+        proficienciaMediaGeral: { data: null, error: '', empty: false },
+        areaQueMaisPrecisaReforco: { data: null, error: '', empty: false },
+    });
+    const [kpisLoading, setKpisLoading] = useState(true);
 
     // Insights modal state
     const [modalVisible, setModalVisible] = useState(false);
@@ -51,14 +58,34 @@ export default function VisaoGeralPage() {
         }
     }, []);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    const fetchKpis = useCallback(async () => {
+        setKpisLoading(true);
+        try {
+            const dashboardKpis = await kpiService.getDashboardKpis();
+            setKpis(dashboardKpis);
+        } catch (error) {
+            console.error('Error fetching dashboard KPIs:', error);
+            setKpis({
+                proficienciaMediaGeral: { data: null, error: 'Não foi possível carregar esta KPI.', empty: false },
+                areaQueMaisPrecisaReforco: { data: null, error: 'Não foi possível carregar esta KPI.', empty: false },
+            });
+        } finally {
+            setKpisLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('adminRefresh', fetchData);
+        fetchData();
+        fetchKpis();
+    }, [fetchData, fetchKpis]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('adminRefresh', () => {
+            fetchData();
+            fetchKpis();
+        });
         return unsubscribe;
-    }, [navigation, fetchData]);
+    }, [navigation, fetchData, fetchKpis]);
 
     async function handleInsightsPress() {
         setInsightsText('');
@@ -119,6 +146,33 @@ export default function VisaoGeralPage() {
                     title={stats.totalAppointments}
                     subtitle="Agendamentos no Mês"
                     icon={<CalendarCheck size={20} color="#3970B7" />}
+                />
+
+                <KpiCard
+                    title={kpis.proficienciaMediaGeral.data?.metric_name || 'Proficiência média geral'}
+                    value={kpis.proficienciaMediaGeral.data?.value}
+                    statusLabel={kpis.proficienciaMediaGeral.data?.status_label}
+                    helperText="Nota média normalizada de proficiência escolar."
+                    recordsCovered={kpis.proficienciaMediaGeral.data?.records_covered}
+                    loading={kpisLoading}
+                    message={kpis.proficienciaMediaGeral.error}
+                    icon={<GraduationCap size={20} color="#3970B7" />}
+                />
+
+                <KpiCard
+                    title={kpis.areaQueMaisPrecisaReforco.data?.metric_name || 'Área que mais precisa de reforço'}
+                    value={kpis.areaQueMaisPrecisaReforco.data?.value}
+                    statusLabel={kpis.areaQueMaisPrecisaReforco.data?.status_label}
+                    description={
+                        kpis.areaQueMaisPrecisaReforco.data?.segment?.subject_name
+                            ? `Priorizar ${kpis.areaQueMaisPrecisaReforco.data.segment.subject_name}`
+                            : ''
+                    }
+                    helperText={kpis.areaQueMaisPrecisaReforco.data?.segment?.grade_label}
+                    recordsCovered={kpis.areaQueMaisPrecisaReforco.data?.records_covered}
+                    loading={kpisLoading}
+                    message={kpis.areaQueMaisPrecisaReforco.error}
+                    icon={<AlertTriangle size={20} color="#E8A317" />}
                 />
 
                 <TouchableOpacity

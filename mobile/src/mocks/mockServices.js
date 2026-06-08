@@ -33,6 +33,10 @@ async function tryOrFallback(asyncFn, fallback) {
     }
 }
 
+function minutesToHours(value) {
+    return typeof value === 'number' ? Math.round((value / 60) * 100) / 100 : value;
+}
+
 // ─── Student Mocks ────────────────────────────────────────
 export const mockStudentService = {
     getById: (id) => tryOrFallback(
@@ -178,9 +182,9 @@ export const mockTeacherDashService = {
         return {
             totalTeachers: data.stats?.totalProfessores ?? 0,
             activeTeachers: (data.teacherTableValues || []).length,
-            totalHoursWorked: data.stats?.totalHorasTrabalhadas ?? 0,
+            totalHoursWorked: minutesToHours(data.stats?.totalHorasTrabalhadas ?? 0),
             averageHourlyRate: data.stats?.valorHoraMedio ?? 0,
-            averageMonthlyHours: data.stats?.mediaHorasMes ?? 0,
+            averageMonthlyHours: minutesToHours(data.stats?.mediaHorasMes ?? 0),
         };
     },
     getCharts: async () => {
@@ -211,7 +215,7 @@ export const mockTeacherDashService = {
         return (data.teacherTableValues || []).map(item => ({
             name: item.name,
             subject: item.subjects,
-            hours: item.hoursWorked,
+            hours: minutesToHours(item.hoursWorked),
             value: item.hourlyRate,
             status: item.status,
         }));

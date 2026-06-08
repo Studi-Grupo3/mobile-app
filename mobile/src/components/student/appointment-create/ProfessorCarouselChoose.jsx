@@ -146,18 +146,6 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
     return (
         <View style={styles.container}>
             <View style={styles.card}>
-                {/* Nav Arrows */}
-                {filtered.length > 1 && (
-                    <>
-                        <TouchableOpacity onPress={prevSlide} style={[styles.arrow, styles.arrowLeft]}>
-                            <ChevronLeft size={24} color="#3970B7" />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={nextSlide} style={[styles.arrow, styles.arrowRight]}>
-                            <ChevronRight size={24} color="#3970B7" />
-                        </TouchableOpacity>
-                    </>
-                )}
-
                 {/* Professor Avatar */}
                 <View style={styles.avatarSection}>
                     <View style={styles.avatarCircle}>
@@ -219,9 +207,17 @@ export default function ProfessorCarouselChoose({ data, onUpdate, onNext }) {
             </View>
 
             {filtered.length > 1 && (
-                <Text style={styles.paginationText}>
-                    {currentSlide + 1} de {filtered.length}
-                </Text>
+                <View style={styles.navRow}>
+                    <TouchableOpacity onPress={prevSlide} style={styles.navButton}>
+                        <ChevronLeft size={22} color="#3970B7" />
+                    </TouchableOpacity>
+                    <Text style={styles.paginationText}>
+                        {currentSlide + 1} de {filtered.length}
+                    </Text>
+                    <TouchableOpacity onPress={nextSlide} style={styles.navButton}>
+                        <ChevronRight size={22} color="#3970B7" />
+                    </TouchableOpacity>
+                </View>
             )}
         </View>
     );
@@ -288,23 +284,28 @@ const styles = StyleSheet.create({
         color: '#3970B7',
     },
     arrow: {
-        position: 'absolute',
-        top: '50%',
-        zIndex: 10,
+        display: 'none',
+    },
+    arrowLeft: {},
+    arrowRight: {},
+    navRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+        marginTop: 12,
+    },
+    navButton: {
         backgroundColor: '#FFF',
         borderRadius: 20,
-        padding: 6,
+        padding: 8,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    arrowLeft: {
-        left: 8,
-    },
-    arrowRight: {
-        right: 8,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
+        elevation: 2,
     },
     detailsContainer: {
         padding: 12,

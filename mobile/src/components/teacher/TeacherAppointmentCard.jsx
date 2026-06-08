@@ -37,7 +37,8 @@ export const TeacherAppointmentCard = ({
     const showResponsible = !isAdult && responsibleName;
     const showAddress = !online && studentAddress;
 
-    const phaseLabel = [phase, schoolGrade].filter(Boolean).join(' • ');
+    const gradeHasLevel = schoolGrade && /ensino|fundamental|médio/i.test(schoolGrade);
+    const phaseLabel = gradeHasLevel ? schoolGrade : [phase, schoolGrade].filter(Boolean).join(' \u2022 ');
 
     return (
         <View style={[styles.card, { borderTopColor: borderColor }]}>
